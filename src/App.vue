@@ -1,4 +1,7 @@
 <template>
+  <div>
+    <div class="play-random" @click="clickPlayByRandom">随机播放</div>
+  </div>
   <ul class="music-list">
     <li v-for="music in musicList" :key="music.sha">
       <svg-icon name="play" @click="clickPlay(music)"></svg-icon>
@@ -30,7 +33,6 @@ const musicDB = useMusicDB();
 
 onMounted(async () => {
   await resolveMusics();
-  clickPlayByRandom();
 });
 
 async function resolveMusics() {
