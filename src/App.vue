@@ -127,7 +127,10 @@ async function clickPlay(index) {
 
 async function clickPlayByOrder(evt) {
   let index = 0;
-  if (evt.type === 'ended' && index < musicList.value.length - 1) {
+  if (
+    (!evt || evt.type === 'ended') &&
+    musicActiveIndex.value < musicList.value.length - 1
+  ) {
     index = musicActiveIndex.value + 1;
   }
   await clickPlay(index);
@@ -152,7 +155,10 @@ function clickPause() {
 }
 
 function clickNext() {
-  audioEls[musicActive.value.sha].onended();
+  if (audioEls[musicActive.value.sha].onended) {
+    return audioEls[musicActive.value.sha].onended();
+  }
+  clickPlayByOrder();
 }
 
 function resetMusic() {
