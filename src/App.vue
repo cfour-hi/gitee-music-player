@@ -15,14 +15,14 @@
       :key="music.sha"
       class="music-item"
       :class="{ active: index === musicActiveIndex }"
-      @click="clickPlay(index)"
+      @click="clickMusic(index)"
     >
       <img :src="music._cover" class="music-cover" />
       <div class="music-info">
-        <div class="music-name">
+        <div class="music-name ellipsis">
           {{ music._tag && music._tag.tags.title }}
         </div>
-        <div class="music-author">
+        <div class="music-author ellipsis">
           {{ music._tag && music._tag.tags.artist }}
         </div>
       </div>
@@ -37,10 +37,10 @@
     </div>
     <img :src="musicActive._cover" class="music-cover" />
     <div class="music-info">
-      <div class="music-name">
+      <div class="music-name ellipsis">
         {{ musicActive._tag.tags.title }}
       </div>
-      <div class="music-author">
+      <div class="music-author ellipsis">
         {{ musicActive._tag.tags.artist }}
       </div>
     </div>
@@ -89,10 +89,11 @@ async function resolveMusics() {
   const data = await res.json();
 
   for (let i = 0; i < data.tree.length / 10; i += 1) {
-    const sliceMusics = data.tree.slice(i * 10, i * 10 + 9);
+    const start = i * 10;
+    const sliceMusics = data.tree.slice(start, start + 10);
     await Promise.all(sliceMusics.map(resolveMusicData));
+    musicList.value.push(...sliceMusics);
   }
-  musicList.value = data.tree;
 }
 
 async function resolveMusicData(music) {
@@ -113,7 +114,7 @@ async function resolveMusicData(music) {
   music._src = URL.createObjectURL(blob);
 }
 
-async function clickPlay(index) {
+async function clickMusic(index) {
   if (musicActiveIndex.value >= 0 && musicPlaying.value) resetMusic();
   musicActiveIndex.value = index;
   await nextTick();
@@ -128,13 +129,13 @@ async function clickPlayByOrder(evt) {
   ) {
     index = musicActiveIndex.value + 1;
   }
-  await clickPlay(index);
+  await clickMusic(index);
   audioRef.value.onended = clickPlayByOrder;
 }
 
 async function clickPlayByRandom() {
   const index = Math.floor(Math.random() * musicList.value.length);
-  await clickPlay(index);
+  await clickMusic(index);
   audioRef.value.onended = clickPlayByRandom;
 }
 
@@ -215,7 +216,7 @@ header button {
 }
 
 .music-list {
-  margin-bottom: 4em;
+  margin-bottom: 5em;
 }
 
 .music-item {
@@ -227,23 +228,20 @@ header button {
   background: #69756544;
 }
 
-.music-item .music-cover {
-  width: 4em;
+.music-cover {
+  width: 3.5em;
   margin: 0 1em;
 }
 
 .music-item .music-info {
   flex: auto;
-  padding: 1.5em 0;
+  padding: 1em 0;
   border-bottom: 1px solid #333;
 }
 
 .music-info .music-name {
   margin-bottom: 0.5em;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 1.1em;
+  font-size: 1em;
 }
 
 .music-info .music-author {
@@ -264,13 +262,11 @@ footer {
 
 footer .music-cover {
   flex: none;
-  margin: 0 1em;
-  width: 4em;
 }
 
 footer .music-info {
   flex: none;
-  width: calc(100% - 13em);
+  width: calc(100% - 12.5em);
   border-bottom: none;
 }
 

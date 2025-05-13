@@ -2,3 +2,9 @@ html {
   background: #1e201e;
   color: #ddd;
 }
+
+.ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
