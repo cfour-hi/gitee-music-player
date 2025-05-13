@@ -17,41 +17,38 @@
       :class="{ active: index === musicActiveIndex }"
       @click="clickPlay(index)"
     >
-      <svg-icon name="music"></svg-icon>
+      <img :src="music._cover" class="music-cover" />
       <div class="music-info">
         <div class="music-name">
-          {{ toMusicName(music) }}
+          {{ music._tag && music._tag.tags.title }}
         </div>
         <div class="music-author">
-          {{ toMusicAuthor(music) }}
+          {{ music._tag && music._tag.tags.artist }}
         </div>
       </div>
-      <audio v-if="music._src" :id="music.sha" :src="music._src"></audio>
-      <svg-icon
-        v-show="index === musicActiveIndex"
-        name="music-rhythm"
-      ></svg-icon>
     </div>
   </div>
-  <footer v-if="musicActiveIndex >= 0">
+  <footer v-if="musicActive">
     <div
       class="audio-progress"
       :style="{ transform: `scaleX(${audioProgress})` }"
-    ></div>
-    <svg-icon name="music1"></svg-icon>
+    >
+      <audio ref="audioRef" :src="musicActive._src"></audio>
+    </div>
+    <img :src="musicActive._cover" class="music-cover" />
     <div class="music-info">
       <div class="music-name">
-        {{ toMusicName() }}
+        {{ musicActive._tag.tags.title }}
       </div>
       <div class="music-author">
-        {{ toMusicAuthor() }}
+        {{ musicActive._tag.tags.artist }}
       </div>
     </div>
     <div class="music-operate">
       <svg-icon
         v-show="!musicPlaying"
         name="play"
-        @click="clickContinue"
+        @click="clickResume"
       ></svg-icon>
       <svg-icon
         v-show="musicPlaying"
@@ -72,11 +69,11 @@ const OWNER = import.meta.env.VITE_OWNER;
 const REPO = import.meta.env.VITE_REPO;
 const BRANCH = import.meta.env.VITE_BRANCH;
 
+const audioRef = ref(null);
 const musicList = ref([]);
 const musicActiveIndex = ref(-1);
 const musicPlaying = ref(false);
 const musicActive = computed(() => musicList.value[musicActiveIndex.value]);
-const audioEls = {};
 const audioProgress = ref(0);
 
 const musicDB = useMusicDB();
@@ -90,39 +87,37 @@ async function resolveMusics() {
     `https://gitee.com/api/v5/repos/${OWNER}/${REPO}/git/trees/${BRANCH}?access_token=${ACCESS_TOKEN}`,
   );
   const data = await res.json();
-  musicList.value = data.tree.map((o) => ({ ...o, _src: undefined }));
+
+  for (let i = 0; i < data.tree.length / 10; i += 1) {
+    const sliceMusics = data.tree.slice(i * 10, i * 10 + 9);
+    await Promise.all(sliceMusics.map(resolveMusicData));
+  }
+  musicList.value = data.tree;
+}
+
+async function resolveMusicData(music) {
+  const _music = await musicDB.get(music.sha);
+  let blob;
+  if (_music) {
+    blob = _music.blob;
+  } else {
+    blob = await resolveMusicBlob(music);
+    await musicDB.add({
+      blob,
+      sha: music.sha,
+      url: music.url,
+    });
+  }
+  music._tag = await resolveMusicTag(blob);
+  music._cover = URL.createObjectURL(toMusicCoverBlob(music._tag));
+  music._src = URL.createObjectURL(blob);
 }
 
 async function clickPlay(index) {
-  if (musicActiveIndex.value >= 0 && musicPlaying.value) {
-    resetMusic();
-  }
+  if (musicActiveIndex.value >= 0 && musicPlaying.value) resetMusic();
   musicActiveIndex.value = index;
-  const music = musicList.value[index];
-
-  if (!music._src) {
-    const _music = await musicDB.get(music.sha);
-    let blob;
-    if (_music) {
-      blob = _music.blob;
-    } else {
-      blob = await resolveMusicBlob(music);
-      await musicDB.add({
-        blob,
-        name: music.path,
-        sha: music.sha,
-        url: music.url,
-      });
-    }
-    const url = URL.createObjectURL(blob);
-    music._src = url;
-  }
   await nextTick();
-
-  if (!audioEls[music.sha]) {
-    audioEls[music.sha] = document.getElementById(music.sha);
-  }
-  clickContinue();
+  await clickResume();
 }
 
 async function clickPlayByOrder(evt) {
@@ -134,64 +129,67 @@ async function clickPlayByOrder(evt) {
     index = musicActiveIndex.value + 1;
   }
   await clickPlay(index);
-  audioEls[musicActive.value.sha].onended = clickPlayByOrder;
+  audioRef.value.onended = clickPlayByOrder;
 }
 
 async function clickPlayByRandom() {
   const index = Math.floor(Math.random() * musicList.value.length);
   await clickPlay(index);
-  audioEls[musicActive.value.sha].onended = clickPlayByRandom;
+  audioRef.value.onended = clickPlayByRandom;
 }
 
-function clickContinue() {
-  audioEls[musicActive.value.sha].play();
+async function clickResume() {
+  await audioRef.value.play();
   musicPlaying.value = true;
   window.requestAnimationFrame(toAudioProgrssFrame);
 }
 
 function clickPause() {
-  audioEls[musicActive.value.sha].pause();
+  audioRef.value.pause();
   musicPlaying.value = false;
 }
 
 function clickNext() {
-  if (audioEls[musicActive.value.sha].onended) {
-    return audioEls[musicActive.value.sha].onended();
+  if (audioRef.value.onended) {
+    return audioRef.value.onended();
   }
   clickPlayByOrder();
 }
 
 function resetMusic() {
   clickPause();
-  audioEls[musicActive.value.sha].currentTime = 0;
+  audioRef.value.currentTime = 0;
+}
+
+function resolveMusicTag(blob) {
+  return new Promise((resolve, reject) => {
+    window.jsmediatags.read(blob, {
+      onSuccess: resolve,
+      onError: reject,
+    });
+  });
 }
 
 async function resolveMusicBlob(music) {
   const res = await fetch(`${music.url}?access_token=${ACCESS_TOKEN}`);
   const resData = await res.json();
   const binaryData = atob(resData.content);
-  // 创建一个 Uint8Array 来存储二进制数据
   const arrayBuffer = new ArrayBuffer(binaryData.length);
   const uint8Array = new Uint8Array(arrayBuffer);
   for (let i = 0; i < binaryData.length; i++) {
     uint8Array[i] = binaryData.charCodeAt(i);
   }
-  // 使用 Blob 构造函数创建 Blob 对象
   return new Blob([uint8Array], { type: 'audio/mp3' });
 }
 
-function toMusicName(music = musicActive.value) {
-  return music.path.match(/(?<=-)[^.]+/)[0].trim();
-}
-
-function toMusicAuthor(music = musicActive.value) {
-  return music.path.match(/.+?(?=-)/)[0].trim();
+function toMusicCoverBlob(musicTag) {
+  const { data, format } = musicTag.tags.picture;
+  return new Blob([new Uint8Array(data), { type: format }]);
 }
 
 function toAudioProgrssFrame() {
   if (musicActiveIndex.value < 0 || !musicPlaying.value) return;
-  const audioEl = audioEls[musicActive.value.sha];
-  audioProgress.value = audioEl.currentTime / audioEl.duration;
+  audioProgress.value = audioRef.value.currentTime / audioRef.value.duration;
   window.requestAnimationFrame(toAudioProgrssFrame);
 }
 </script>
@@ -226,25 +224,17 @@ header button {
 }
 
 .music-item.active {
-  background: #69756566;
+  background: #69756544;
 }
 
-.music-item .svg-icon__music {
-  font-size: 2em;
-  margin: 0 0.5em;
-  color: #999;
-}
-
-.music-item .svg-icon__music-rhythm {
-  position: absolute;
-  right: 0.5em;
-  font-size: 2em;
-  color: #697565;
+.music-item .music-cover {
+  width: 4em;
+  margin: 0 1em;
 }
 
 .music-item .music-info {
   flex: auto;
-  padding: 0.5em 0;
+  padding: 1.5em 0;
   border-bottom: 1px solid #333;
 }
 
@@ -253,6 +243,7 @@ header button {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-size: 1.1em;
 }
 
 .music-info .music-author {
@@ -265,22 +256,21 @@ footer {
   bottom: 0;
   left: 0;
   right: 0;
-  height: 4em;
+  height: 5em;
   background: #697565;
   display: flex;
   align-items: center;
-  padding: 0 1em;
 }
 
-footer .svg-icon__music1 {
+footer .music-cover {
   flex: none;
-  margin-right: 0.5em;
-  font-size: 2em;
+  margin: 0 1em;
+  width: 4em;
 }
 
 footer .music-info {
   flex: none;
-  width: calc(100% - 9em);
+  width: calc(100% - 13em);
   border-bottom: none;
 }
 
