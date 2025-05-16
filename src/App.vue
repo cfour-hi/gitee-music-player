@@ -12,7 +12,7 @@
   </header>
   <div class="song-list">
     <div
-      v-for="(song, index) in songList"
+      v-for="(song, index) in songListSorted"
       :key="song.sha"
       class="song-item"
       :class="{ active: index === songActiveIndex }"
@@ -71,9 +71,14 @@ const REPO = import.meta.env.VITE_REPO;
 const BRANCH = import.meta.env.VITE_BRANCH;
 
 const songList = ref([]);
+const songListSorted = computed(() =>
+  songList.value.sort((a, b) =>
+    a.path < b.path ? -1 : a.path > b.path ? 1 : 0,
+  ),
+);
 const songActiveIndex = ref(-1);
 const songPlaying = ref(false);
-const songActive = computed(() => songList.value[songActiveIndex.value]);
+const songActive = computed(() => songListSorted.value[songActiveIndex.value]);
 
 const audioRef = ref(null);
 const audioProgress = ref(0);
@@ -83,7 +88,6 @@ const musicDB = useMusicDB();
 onMounted(async () => {
   await musicDB.connect();
   await resolveSongsFromLocal();
-  // await resolveSongs();
 });
 
 async function resolveSongsFromLocal() {
@@ -96,47 +100,59 @@ async function resolveSongsFromLocal() {
   songList.value = songs;
 }
 
-async function resolveSongs() {
+async function clickRefresh() {
   const res = await fetch(
     `https://gitee.com/api/v5/repos/${OWNER}/${REPO}/git/trees/${BRANCH}?access_token=${ACCESS_TOKEN}`,
   );
   const data = await res.json();
-
-  for (let i = 0; i < data.tree.length / 10; i += 1) {
+  const newSongs = data.tree.filter(
+    (o) => !songList.value.find((song) => song.sha === o.sha),
+  );
+  for (let i = 0; i < newSongs.length / 10; i += 1) {
     const start = i * 10;
-    const sliceSongs = data.tree.slice(start, start + 10);
+    const sliceSongs = newSongs.slice(start, start + 10);
     await Promise.all(sliceSongs.map(resolveSongData));
     songList.value.push(...sliceSongs);
   }
 }
 
 async function resolveSongData(song) {
-  const _song = await musicDB.get(song.sha);
-  let blob;
-  if (_song) {
-    blob = _song.blob;
-  } else {
-    blob = await resolveSongBlob(song);
-    await musicDB.add({
-      blob,
-      sha: song.sha,
-      url: song.url,
-    });
-  }
+  const blob = await resolveSongBlob(song);
+  await musicDB.add({
+    blob,
+    path: song.path,
+    sha: song.sha,
+    url: song.url,
+  });
   song._tag = await resolveSongTag(blob);
   song._cover = URL.createObjectURL(toSongCoverBlob(song._tag));
   song._src = URL.createObjectURL(blob);
 }
 
-async function clickSong(index) {
-  if (songActiveIndex.value >= 0 && songPlaying.value) resetSong();
-  songActiveIndex.value = index;
-  await nextTick();
-  await clickResume();
+async function resolveSongBlob(song) {
+  const res = await fetch(`${song.url}?access_token=${ACCESS_TOKEN}`);
+  const resData = await res.json();
+  const binaryData = atob(resData.content);
+  const arrayBuffer = new ArrayBuffer(binaryData.length);
+  const uint8Array = new Uint8Array(arrayBuffer);
+  for (let i = 0; i < binaryData.length; i++) {
+    uint8Array[i] = binaryData.charCodeAt(i);
+  }
+  return new Blob([uint8Array], { type: 'audio/mp3' });
 }
 
-async function clickRefresh() {
-  // TODO
+function resolveSongTag(blob) {
+  return new Promise((resolve, reject) => {
+    window.jsmediatags.read(blob, {
+      onSuccess: resolve,
+      onError: reject,
+    });
+  });
+}
+
+function toSongCoverBlob(songTag) {
+  const { data, format } = songTag.tags.picture;
+  return new Blob([new Uint8Array(data)], { type: format });
 }
 
 async function clickPlayByOrder(evt) {
@@ -157,9 +173,27 @@ async function clickPlayByRandom() {
   audioRef.value.onended = clickPlayByRandom;
 }
 
+async function clickSong(index) {
+  if (songActiveIndex.value >= 0 && songPlaying.value) resetSong();
+  songActiveIndex.value = index;
+  await nextTick();
+  await clickResume();
+}
+
+function resetSong() {
+  clickPause();
+  audioRef.value.currentTime = 0;
+}
+
 async function clickResume() {
   await audioRef.value.play();
   songPlaying.value = true;
+  window.requestAnimationFrame(toAudioProgrssFrame);
+}
+
+function toAudioProgrssFrame() {
+  if (songActiveIndex.value < 0 || !songPlaying.value) return;
+  audioProgress.value = audioRef.value.currentTime / audioRef.value.duration;
   window.requestAnimationFrame(toAudioProgrssFrame);
 }
 
@@ -173,43 +207,6 @@ function clickNext() {
     return audioRef.value.onended();
   }
   clickPlayByOrder();
-}
-
-function resetSong() {
-  clickPause();
-  audioRef.value.currentTime = 0;
-}
-
-function resolveSongTag(blob) {
-  return new Promise((resolve, reject) => {
-    window.jsmediatags.read(blob, {
-      onSuccess: resolve,
-      onError: reject,
-    });
-  });
-}
-
-async function resolveSongBlob(song) {
-  const res = await fetch(`${song.url}?access_token=${ACCESS_TOKEN}`);
-  const resData = await res.json();
-  const binaryData = atob(resData.content);
-  const arrayBuffer = new ArrayBuffer(binaryData.length);
-  const uint8Array = new Uint8Array(arrayBuffer);
-  for (let i = 0; i < binaryData.length; i++) {
-    uint8Array[i] = binaryData.charCodeAt(i);
-  }
-  return new Blob([uint8Array], { type: 'audio/mp3' });
-}
-
-function toSongCoverBlob(songTag) {
-  const { data, format } = songTag.tags.picture;
-  return new Blob([new Uint8Array(data), { type: format }]);
-}
-
-function toAudioProgrssFrame() {
-  if (songActiveIndex.value < 0 || !songPlaying.value) return;
-  audioProgress.value = audioRef.value.currentTime / audioRef.value.duration;
-  window.requestAnimationFrame(toAudioProgrssFrame);
 }
 </script>
 
