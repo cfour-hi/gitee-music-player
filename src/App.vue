@@ -1,14 +1,20 @@
 <template>
   <header>
-    <svg-icon name="refresh" @click="clickRefresh"></svg-icon>
-    <button @click="clickPlayByOrder">
-      <svg-icon name="play"></svg-icon>
-      顺序播放
-    </button>
-    <button @click="clickPlayByRandom">
-      <svg-icon name="play-random"></svg-icon>
-      随机播放
-    </button>
+    <svg-icon
+      name="loading"
+      :class="{ loading: loading }"
+      @click="clickRefresh"
+    ></svg-icon>
+    <template v-if="songList.length > 0">
+      <button @click="clickPlayByOrder">
+        <svg-icon name="play"></svg-icon>
+        顺序播放
+      </button>
+      <button @click="clickPlayByRandom">
+        <svg-icon name="play-random"></svg-icon>
+        随机播放
+      </button>
+    </template>
   </header>
   <div class="song-list">
     <div
@@ -68,8 +74,9 @@ import { computed, nextTick, onMounted, ref } from 'vue';
 const ACCESS_TOKEN = import.meta.env.VITE_ACCESS_TOKEN;
 const OWNER = import.meta.env.VITE_OWNER;
 const REPO = import.meta.env.VITE_REPO;
-const BRANCH = import.meta.env.VITE_BRANCH;
+const BRANCH = import.meta.env.PROD ? import.meta.env.VITE_BRANCH : 'dev';
 
+const loading = ref(false);
 const songList = ref([]);
 const songListSorted = computed(() =>
   songList.value.sort((a, b) =>
@@ -86,27 +93,40 @@ const audioProgress = ref(0);
 const musicDB = useMusicDB();
 
 onMounted(async () => {
+  loading.value = true;
   await musicDB.connect();
   await resolveSongsFromLocal();
+  loading.value = false;
 });
 
 async function resolveSongsFromLocal() {
   const songs = await musicDB.get();
   for (const song of songs) {
     song._tag = await resolveSongTag(song.blob);
-    song._cover = URL.createObjectURL(toSongCoverBlob(song._tag));
+    song._cover = toSongCover(song._tag);
     song._src = URL.createObjectURL(song.blob);
   }
   songList.value = songs;
 }
 
 async function clickRefresh() {
+  if (loading.value) return;
+  loading.value = true;
+
   const res = await fetch(
     `https://gitee.com/api/v5/repos/${OWNER}/${REPO}/git/trees/${BRANCH}?access_token=${ACCESS_TOKEN}`,
   );
   const data = await res.json();
+
+  for (let i = songList.value.length - 1; i >= 0; i -= 1) {
+    const song = songList.value[i];
+    if (data.tree.find((o) => o.sha === song.sha)) continue;
+    await musicDB.delete(song.sha);
+    songList.value.splice(i, 1);
+  }
+
   const newSongs = data.tree.filter(
-    (o) => !songList.value.find((song) => song.sha === o.sha),
+    (o) => !songList.value.find((p) => p.sha === o.sha),
   );
   for (let i = 0; i < newSongs.length / 10; i += 1) {
     const start = i * 10;
@@ -114,6 +134,7 @@ async function clickRefresh() {
     await Promise.all(sliceSongs.map(resolveSongData));
     songList.value.push(...sliceSongs);
   }
+  loading.value = false;
 }
 
 async function resolveSongData(song) {
@@ -125,7 +146,7 @@ async function resolveSongData(song) {
     url: song.url,
   });
   song._tag = await resolveSongTag(blob);
-  song._cover = URL.createObjectURL(toSongCoverBlob(song._tag));
+  song._cover = toSongCover(song._tag);
   song._src = URL.createObjectURL(blob);
 }
 
@@ -150,9 +171,10 @@ function resolveSongTag(blob) {
   });
 }
 
-function toSongCoverBlob(songTag) {
+function toSongCover(songTag) {
   const { data, format } = songTag.tags.picture;
-  return new Blob([new Uint8Array(data)], { type: format });
+  const blob = new Blob([new Uint8Array(data)], { type: format });
+  return URL.createObjectURL(blob);
 }
 
 async function clickPlayByOrder(evt) {
@@ -217,8 +239,13 @@ header {
   height: 4em;
 }
 
-header .svg-icon__refresh {
-  margin-left: 2em;
+header .svg-icon__loading {
+  margin-left: 1.4em;
+  font-size: 1.4em;
+}
+
+header .svg-icon__loading.loading {
+  animation: 1s linear infinite loading;
 }
 
 header button {
@@ -249,6 +276,7 @@ header button {
 .song-cover {
   width: 3.5em;
   margin: 0 1em;
+  object-fit: contain;
 }
 
 .song-item .song-info {
@@ -310,5 +338,14 @@ footer .audio-progress {
   height: 0.25em;
   background: #aaa;
   transform-origin: 0;
+}
+
+@keyframes loading {
+  from {
+    transform: rotate(0);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>

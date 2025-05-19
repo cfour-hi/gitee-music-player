@@ -1,4 +1,4 @@
-const DB_NAME = 'music';
+const DB_NAME = import.meta.env.PROD ? 'music' : 'music-dev';
 const DB_VERSION = 1;
 const DB_STORE_NAME = 'songs';
 
@@ -30,9 +30,7 @@ export default function useMusicDB() {
     return new Promise((resolve, reject) => {
       const store = db.transaction(DB_STORE_NAME).objectStore(DB_STORE_NAME);
       const req = sha ? store.get(sha) : store.getAll();
-      req.onerror = (evt) => {
-        reject(evt);
-      };
+      req.onerror = reject;
       req.onsuccess = (evt) => {
         resolve(req.result);
       };
@@ -45,12 +43,21 @@ export default function useMusicDB() {
         .transaction(DB_STORE_NAME, 'readwrite')
         .objectStore(DB_STORE_NAME);
       const req = store.add(data);
-      req.onerror = (evt) => {
-        reject(evt);
-      };
+      req.onerror = reject;
       req.onsuccess = (evt) => {
         resolve(evt.target.result);
       };
+    });
+  }
+
+  function del(sha) {
+    return new Promise((resolve, reject) => {
+      const store = db
+        .transaction(DB_STORE_NAME, 'readwrite')
+        .objectStore(DB_STORE_NAME);
+      const req = store.delete(sha);
+      req.onerror = reject;
+      req.onsuccess = resolve;
     });
   }
 
@@ -59,5 +66,6 @@ export default function useMusicDB() {
     connect,
     get,
     add,
+    delete: del,
   };
 }
