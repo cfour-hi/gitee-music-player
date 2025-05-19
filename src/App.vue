@@ -1,22 +1,32 @@
 <template>
   <header>
-    <svg-icon
-      name="loading"
-      :class="{ loading: loading }"
-      @click="clickRefresh"
-    ></svg-icon>
-    <template v-if="songList.length > 0">
-      <button @click="clickPlayByOrder">
-        <svg-icon name="play"></svg-icon>
-        顺序播放
-      </button>
-      <button @click="clickPlayByRandom">
-        <svg-icon name="play-random"></svg-icon>
-        随机播放
-      </button>
-    </template>
+    <div v-show="!searching">
+      <svg-icon
+        name="loading"
+        :class="{ loading: loading }"
+        @click="clickRefresh"
+      ></svg-icon>
+      <template v-if="songList.length > 0">
+        <button @click="clickPlayByOrder">
+          <svg-icon name="play"></svg-icon>
+          顺序播放
+        </button>
+        <button @click="clickPlayByRandom">
+          <svg-icon name="play-random"></svg-icon>
+          随机播放
+        </button>
+      </template>
+      <svg-icon name="search" @click="clickSearch"></svg-icon>
+    </div>
+    <input
+      v-show="searching"
+      v-model="searchContent"
+      ref="searchRef"
+      type="text"
+      class="input-search"
+      @blur="blurSearchInput"
+    />
   </header>
-  <input v-model="searchContent" type="text" class="input-search" />
   <div class="song-list">
     <div
       v-for="(song, index) in songList"
@@ -55,12 +65,12 @@
     </div>
     <div class="song-operate">
       <svg-icon
-        v-show="!songPlaying"
+        v-show="!audioPlaying"
         name="play"
         @click="clickResume"
       ></svg-icon>
       <svg-icon
-        v-show="songPlaying"
+        v-show="audioPlaying"
         name="pause"
         @click="clickPause"
       ></svg-icon>
@@ -70,8 +80,10 @@
 </template>
 
 <script setup>
-import useMusicDB from './hooks/use-musics-db';
-import { computed, nextTick, onMounted, ref, watch } from 'vue';
+import useMusicDB from './hooks/use-music-db';
+import useSongParse from './hooks/use-song-parse';
+import useMusicSearch from './hooks/use-music-search';
+import { computed, nextTick, onMounted, ref } from 'vue';
 
 const ACCESS_TOKEN = import.meta.env.VITE_ACCESS_TOKEN;
 const OWNER = import.meta.env.VITE_OWNER;
@@ -79,6 +91,7 @@ const REPO = import.meta.env.VITE_REPO;
 const BRANCH = import.meta.env.PROD ? import.meta.env.VITE_BRANCH : 'dev';
 
 const loading = ref(false);
+
 const songList = ref([]);
 const songListSorted = computed(() =>
   songList.value.sort((a, b) =>
@@ -86,15 +99,16 @@ const songListSorted = computed(() =>
   ),
 );
 const songActiveIndex = ref(-1);
-const songPlaying = ref(false);
 const songActive = computed(() => songListSorted.value[songActiveIndex.value]);
 
-const searchContent = ref('');
-
 const audioRef = ref(null);
+const audioPlaying = ref(false);
 const audioProgress = ref(0);
 
 const musicDB = useMusicDB();
+const { searchRef, searching, searchContent, clickSearch, blurSearchInput } =
+  useMusicSearch();
+const { resolveSongData, resolveSongTag, toSongCover } = useSongParse();
 
 onMounted(async () => {
   loading.value = true;
@@ -141,46 +155,6 @@ async function clickRefresh() {
   loading.value = false;
 }
 
-async function resolveSongData(song) {
-  const blob = await resolveSongBlob(song);
-  await musicDB.add({
-    blob,
-    path: song.path,
-    sha: song.sha,
-    url: song.url,
-  });
-  song._tag = await resolveSongTag(blob);
-  song._cover = toSongCover(song._tag);
-  song._src = URL.createObjectURL(blob);
-}
-
-async function resolveSongBlob(song) {
-  const res = await fetch(`${song.url}?access_token=${ACCESS_TOKEN}`);
-  const resData = await res.json();
-  const binaryData = atob(resData.content);
-  const arrayBuffer = new ArrayBuffer(binaryData.length);
-  const uint8Array = new Uint8Array(arrayBuffer);
-  for (let i = 0; i < binaryData.length; i++) {
-    uint8Array[i] = binaryData.charCodeAt(i);
-  }
-  return new Blob([uint8Array], { type: 'audio/mp3' });
-}
-
-function resolveSongTag(blob) {
-  return new Promise((resolve, reject) => {
-    window.jsmediatags.read(blob, {
-      onSuccess: resolve,
-      onError: reject,
-    });
-  });
-}
-
-function toSongCover(songTag) {
-  const { data, format } = songTag.tags.picture;
-  const blob = new Blob([new Uint8Array(data)], { type: format });
-  return URL.createObjectURL(blob);
-}
-
 async function clickPlayByOrder(evt) {
   let index = 0;
   if (
@@ -190,7 +164,6 @@ async function clickPlayByOrder(evt) {
     index = songActiveIndex.value + 1;
   }
   await clickSong(index);
-  audioRef.value.onended = clickPlayByOrder;
 }
 
 async function clickPlayByRandom() {
@@ -208,32 +181,31 @@ function showSong(song) {
 }
 
 async function clickSong(index) {
-  if (songActiveIndex.value >= 0 && songPlaying.value) resetSong();
+  if (songActiveIndex.value >= 0 && audioPlaying.value) {
+    clickPause();
+    audioRef.value.currentTime = 0;
+  }
   songActiveIndex.value = index;
   await nextTick();
   await clickResume();
-}
-
-function resetSong() {
-  clickPause();
-  audioRef.value.currentTime = 0;
+  audioRef.value.onended = clickPlayByOrder;
 }
 
 async function clickResume() {
   await audioRef.value.play();
-  songPlaying.value = true;
+  audioPlaying.value = true;
   window.requestAnimationFrame(toAudioProgrssFrame);
 }
 
 function toAudioProgrssFrame() {
-  if (songActiveIndex.value < 0 || !songPlaying.value) return;
+  if (songActiveIndex.value < 0 || !audioPlaying.value) return;
   audioProgress.value = audioRef.value.currentTime / audioRef.value.duration;
   window.requestAnimationFrame(toAudioProgrssFrame);
 }
 
 function clickPause() {
   audioRef.value.pause();
-  songPlaying.value = false;
+  audioPlaying.value = false;
 }
 
 function clickNext() {
@@ -272,13 +244,17 @@ header button {
   background: transparent;
 }
 
+header .svg-icon__search {
+  margin-left: 1em;
+  font-size: 1.4em;
+}
+
 .input-search {
   box-sizing: border-box;
   width: calc(100% - 2em);
   margin: 0 1em;
   border: none;
   border-radius: 0.25em;
-  height: 1.5em;
   padding: 0.25em;
   color: #1e201e;
 }
