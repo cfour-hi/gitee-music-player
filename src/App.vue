@@ -16,12 +16,14 @@
       </button>
     </template>
   </header>
+  <input v-model="searchContent" type="text" class="input-search" />
   <div class="song-list">
     <div
-      v-for="(song, index) in songListSorted"
+      v-for="(song, index) in songList"
       :key="song.sha"
       class="song-item"
       :class="{ active: index === songActiveIndex }"
+      v-show="showSong(song)"
       @click="clickSong(index)"
     >
       <img :src="song._cover" class="song-cover" />
@@ -69,7 +71,7 @@
 
 <script setup>
 import useMusicDB from './hooks/use-musics-db';
-import { computed, nextTick, onMounted, ref } from 'vue';
+import { computed, nextTick, onMounted, ref, watch } from 'vue';
 
 const ACCESS_TOKEN = import.meta.env.VITE_ACCESS_TOKEN;
 const OWNER = import.meta.env.VITE_OWNER;
@@ -86,6 +88,8 @@ const songListSorted = computed(() =>
 const songActiveIndex = ref(-1);
 const songPlaying = ref(false);
 const songActive = computed(() => songListSorted.value[songActiveIndex.value]);
+
+const searchContent = ref('');
 
 const audioRef = ref(null);
 const audioProgress = ref(0);
@@ -195,6 +199,14 @@ async function clickPlayByRandom() {
   audioRef.value.onended = clickPlayByRandom;
 }
 
+function showSong(song) {
+  if (!searchContent.value) return true;
+  const { title, artist } = song._tag.tags;
+  return (
+    title.includes(searchContent.value) || artist.includes(searchContent.value)
+  );
+}
+
 async function clickSong(index) {
   if (songActiveIndex.value >= 0 && songPlaying.value) resetSong();
   songActiveIndex.value = index;
@@ -258,6 +270,17 @@ header button {
   margin-left: 2em;
   color: currentColor;
   background: transparent;
+}
+
+.input-search {
+  box-sizing: border-box;
+  width: calc(100% - 2em);
+  margin: 0 1em;
+  border: none;
+  border-radius: 0.25em;
+  height: 1.5em;
+  padding: 0.25em;
+  color: #1e201e;
 }
 
 .song-list {
