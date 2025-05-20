@@ -11,10 +11,11 @@ export default function useMusicSearch() {
     searchRef.value.focus();
   }
 
-  async function blurSearchInput() {
-    await nextTick();
-    searching.value = false;
-    searchContent.value = '';
+  function blurSearchInput() {
+    setTimeout(() => {
+      searching.value = false;
+      searchContent.value = '';
+    });
   }
 
   return {

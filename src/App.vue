@@ -27,7 +27,7 @@
       @blur="blurSearchInput"
     />
   </header>
-  <div class="song-list">
+  <main class="song-list">
     <div
       v-for="(song, index) in songList"
       :key="song.sha"
@@ -46,7 +46,7 @@
         </div>
       </div>
     </div>
-  </div>
+  </main>
   <footer v-if="songActive">
     <div
       class="audio-progress"
@@ -149,7 +149,17 @@ async function clickRefresh() {
   for (let i = 0; i < newSongs.length / 10; i += 1) {
     const start = i * 10;
     const sliceSongs = newSongs.slice(start, start + 10);
-    await Promise.all(sliceSongs.map(resolveSongData));
+    await Promise.all(
+      sliceSongs.map(async (song) => {
+        const blob = await resolveSongData(song);
+        return musicDB.add({
+          blob,
+          path: song.path,
+          sha: song.sha,
+          url: song.url,
+        });
+      }),
+    );
     songList.value.push(...sliceSongs);
   }
   loading.value = false;
@@ -220,7 +230,7 @@ function clickNext() {
 header {
   display: flex;
   align-items: center;
-  height: 0.64rem;
+  height: 1.2rem;
 }
 
 header .toolbar {
@@ -231,9 +241,9 @@ header .toolbar {
 }
 
 header .toolbar > .svg-icon {
-  flex: 0 0 0.64rem;
-  padding: 0.2rem 0;
-  font-size: 0.24rem;
+  flex: 0 0 1.2rem;
+  padding: 0.4rem 0;
+  font-size: 0.35rem;
 }
 
 header .svg-icon__loading.loading {
@@ -244,22 +254,22 @@ header .play-btns {
   flex: auto;
   display: inline-flex;
   justify-content: center;
-  gap: 0.32rem;
+  gap: 0.3rem;
 }
 
 header button {
   display: inline-flex;
   align-items: center;
-  gap: 0.08rem;
+  gap: 0.15rem;
   border: 1px solid #666;
-  padding: 0.08rem;
-  border-radius: 0.04rem;
+  padding: 0.15rem;
+  border-radius: 0.1rem;
   color: currentColor;
   background: transparent;
 }
 
 header button .svg-icon {
-  font-size: 0.18rem;
+  font-size: 0.3rem;
 }
 
 .input-search {
@@ -273,7 +283,7 @@ header button .svg-icon {
 }
 
 .song-list {
-  margin-bottom: 0.8rem;
+  margin-bottom: 1.4rem;
 }
 
 .song-item {
@@ -286,24 +296,25 @@ header button .svg-icon {
 }
 
 .song-cover {
-  width: 0.56rem;
-  margin: 0 0.16rem;
+  width: 1rem;
+  margin: 0.2rem 0.3rem;
   object-fit: contain;
 }
 
 .song-item .song-info {
   flex: auto;
   width: 0;
-  padding: 0.16rem 0;
   border-bottom: 1px solid #333;
 }
 
 .song-info .song-name {
-  margin-bottom: 0.08rem;
+  margin-top: 1em;
 }
 
 .song-info .song-author {
-  font-size: 0.14rem;
+  padding-bottom: 1em;
+  margin-top: 0.8em;
+  font-size: 0.9em;
   color: #aaa;
 }
 
@@ -312,7 +323,6 @@ footer {
   bottom: 0;
   left: 0;
   right: 0;
-  height: 0.8rem;
   background: #697565;
   display: flex;
   align-items: center;
@@ -329,8 +339,8 @@ footer .song-info {
 }
 
 footer .song-operate {
-  flex: 0 0 0.96rem;
-  margin-right: 0.16rem;
+  flex: 0 0 1.6rem;
+  margin-right: 0.25rem;
   display: inline-flex;
   justify-content: space-around;
 }
@@ -338,7 +348,7 @@ footer .song-operate {
 footer .song-operate .svg-icon__play,
 footer .song-operate .svg-icon__pause,
 footer .song-operate .svg-icon__next {
-  font-size: 0.32rem;
+  font-size: 2em;
 }
 
 footer .audio-progress {

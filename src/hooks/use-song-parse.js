@@ -1,15 +1,12 @@
+const ACCESS_TOKEN = import.meta.env.VITE_ACCESS_TOKEN;
+
 export default function useSongParse() {
   async function resolveSongData(song) {
     const blob = await resolveSongBlob(song);
-    await musicDB.add({
-      blob,
-      path: song.path,
-      sha: song.sha,
-      url: song.url,
-    });
     song._tag = await resolveSongTag(blob);
     song._cover = toSongCover(song._tag);
     song._src = URL.createObjectURL(blob);
+    return blob;
   }
 
   async function resolveSongBlob(song) {
