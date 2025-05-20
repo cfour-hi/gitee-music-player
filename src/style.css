@@ -3,6 +3,10 @@ html {
   color: #ddd;
 }
 
+body {
+  font-size: 0.16rem;
+}
+
 .ellipsis {
   overflow: hidden;
   text-overflow: ellipsis;

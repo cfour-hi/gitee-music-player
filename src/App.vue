@@ -1,12 +1,12 @@
 <template>
   <header>
-    <div v-show="!searching">
+    <div v-show="!searching" class="toolbar">
       <svg-icon
         name="loading"
         :class="{ loading: loading }"
         @click="clickRefresh"
       ></svg-icon>
-      <template v-if="songList.length > 0">
+      <div v-if="songList.length > 0" class="play-btns">
         <button @click="clickPlayByOrder">
           <svg-icon name="play"></svg-icon>
           顺序播放
@@ -15,7 +15,7 @@
           <svg-icon name="play-random"></svg-icon>
           随机播放
         </button>
-      </template>
+      </div>
       <svg-icon name="search" @click="clickSearch"></svg-icon>
     </div>
     <input
@@ -220,47 +220,60 @@ function clickNext() {
 header {
   display: flex;
   align-items: center;
-  height: 4em;
+  height: 0.64rem;
 }
 
-header .svg-icon__loading {
-  margin-left: 1.4em;
-  font-size: 1.4em;
+header .toolbar {
+  display: flex;
+  align-items: center;
+  flex: auto;
+  height: 100%;
+}
+
+header .toolbar > .svg-icon {
+  flex: 0 0 0.64rem;
+  padding: 0.2rem 0;
+  font-size: 0.24rem;
 }
 
 header .svg-icon__loading.loading {
   animation: 1s linear infinite loading;
 }
 
+header .play-btns {
+  flex: auto;
+  display: inline-flex;
+  justify-content: center;
+  gap: 0.32rem;
+}
+
 header button {
   display: inline-flex;
   align-items: center;
-  gap: 0.5em;
+  gap: 0.08rem;
   border: 1px solid #666;
-  padding: 0.5em 1em;
-  border-radius: 0.25em;
-  margin-left: 2em;
+  padding: 0.08rem;
+  border-radius: 0.04rem;
   color: currentColor;
   background: transparent;
 }
 
-header .svg-icon__search {
-  margin-left: 1em;
-  font-size: 1.4em;
+header button .svg-icon {
+  font-size: 0.18rem;
 }
 
 .input-search {
   box-sizing: border-box;
-  width: calc(100% - 2em);
-  margin: 0 1em;
+  width: calc(100% - 0.32rem);
+  padding: 0.04rem;
   border: none;
-  border-radius: 0.25em;
-  padding: 0.25em;
+  border-radius: 0.04rem;
+  margin: 0 0.16rem;
   color: #1e201e;
 }
 
 .song-list {
-  margin-bottom: 5em;
+  margin-bottom: 0.8rem;
 }
 
 .song-item {
@@ -273,25 +286,24 @@ header .svg-icon__search {
 }
 
 .song-cover {
-  width: 3.5em;
-  margin: 0 1em;
+  width: 0.56rem;
+  margin: 0 0.16rem;
   object-fit: contain;
 }
 
 .song-item .song-info {
   flex: auto;
   width: 0;
-  padding: 1em 0;
+  padding: 0.16rem 0;
   border-bottom: 1px solid #333;
 }
 
 .song-info .song-name {
-  margin-bottom: 0.5em;
-  font-size: 1em;
+  margin-bottom: 0.08rem;
 }
 
 .song-info .song-author {
-  font-size: 0.85em;
+  font-size: 0.14rem;
   color: #aaa;
 }
 
@@ -300,7 +312,7 @@ footer {
   bottom: 0;
   left: 0;
   right: 0;
-  height: 5em;
+  height: 0.8rem;
   background: #697565;
   display: flex;
   align-items: center;
@@ -317,8 +329,8 @@ footer .song-info {
 }
 
 footer .song-operate {
-  flex: 0 0 6em;
-  margin-right: 1em;
+  flex: 0 0 0.96rem;
+  margin-right: 0.16rem;
   display: inline-flex;
   justify-content: space-around;
 }
@@ -326,7 +338,7 @@ footer .song-operate {
 footer .song-operate .svg-icon__play,
 footer .song-operate .svg-icon__pause,
 footer .song-operate .svg-icon__next {
-  font-size: 2em;
+  font-size: 0.32rem;
 }
 
 footer .audio-progress {
@@ -334,7 +346,7 @@ footer .audio-progress {
   bottom: 0;
   left: 0;
   width: 100%;
-  height: 0.25em;
+  height: 0.04rem;
   background: #aaa;
   transform-origin: 0;
 }

@@ -1,10 +1,25 @@
 <!doctype html>
-<html lang="en" style="font-size: 16px;">
+<html lang="en" style="font-size: 0px;">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Music</title>
+     <script>
+        const baseWidth = 750; // 基准设计尺寸（px）
+        const baseFontSize = 100; // 基准 font-size 值（px）
+        function calculateFontSize() {
+            const currentWidth = document.documentElement.clientWidth || window.innerWidth;
+            const currentFontSize = (currentWidth / baseWidth) * baseFontSize;
+            document.documentElement.style.fontSize = `${currentFontSize}px`;
+        }
+        calculateFontSize();
+
+        // 监听窗口大小变化事件，重新计算 font-size
+        window.addEventListener('resize', calculateFontSize);
+        // 监听页面加载完成事件，确保页面元素正确渲染
+        window.addEventListener('load', calculateFontSize);
+    </script>
   </head>
   <body>
     <div id="app"></div>

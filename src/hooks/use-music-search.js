@@ -11,7 +11,8 @@ export default function useMusicSearch() {
     searchRef.value.focus();
   }
 
-  function blurSearchInput() {
+  async function blurSearchInput() {
+    await nextTick();
     searching.value = false;
     searchContent.value = '';
   }
