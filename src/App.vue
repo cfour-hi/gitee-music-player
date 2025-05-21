@@ -47,6 +47,9 @@
       </div>
     </div>
   </main>
+  <div class="to-top" @click="clickToTop">
+    <svg-icon name="to-top"></svg-icon>
+  </div>
   <footer v-if="songActive">
     <div
       class="audio-progress"
@@ -224,6 +227,10 @@ function clickNext() {
   }
   clickPlayByOrder();
 }
+
+function clickToTop() {
+  document.documentElement.scrollTo({ top: 0, behavior: 'smooth' });
+}
 </script>
 
 <style scoped>
@@ -316,6 +323,23 @@ header button .svg-icon {
   margin-top: 0.8em;
   font-size: 0.9em;
   color: #aaa;
+}
+
+.to-top {
+  position: fixed;
+  bottom: 1.8rem;
+  right: 0.4rem;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid #ddd;
+}
+
+.svg-icon__to-top {
+  font-size: 1.5em;
 }
 
 footer {
