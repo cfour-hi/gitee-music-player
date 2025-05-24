@@ -118,6 +118,8 @@ onMounted(async () => {
   await musicDB.connect();
   await resolveSongsFromLocal();
   loading.value = false;
+
+  registerMediaEvents();
 });
 
 async function resolveSongsFromLocal() {
@@ -128,6 +130,21 @@ async function resolveSongsFromLocal() {
     song._src = URL.createObjectURL(song.blob);
   }
   songList.value = songs;
+}
+
+function registerMediaEvents() {
+  if (!navigator.mediaSession) return;
+
+  navigator.mediaSession.setActionHandler('play', () => {
+    if (songActiveIndex.value >= 0 && audioPlaying.value) {
+      clickResume();
+    } else {
+      clickPlayByRandom();
+    }
+  });
+  navigator.mediaSession.setActionHandler('pause', clickPause);
+  navigator.mediaSession.setActionHandler('previoustrack', clickPrev);
+  navigator.mediaSession.setActionHandler('nexttrack', clickNext);
 }
 
 async function clickRefresh() {
@@ -219,6 +236,10 @@ function toAudioProgrssFrame() {
 function clickPause() {
   audioRef.value.pause();
   audioPlaying.value = false;
+}
+
+function clickPrev() {
+  // TODO
 }
 
 function clickNext() {
