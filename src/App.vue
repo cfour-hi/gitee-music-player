@@ -3,7 +3,7 @@
     <div v-show="!searching" class="toolbar">
       <svg-icon
         name="loading"
-        :class="{ loading: loading }"
+        :class="{ loading: songLoading }"
         @click="clickRefresh"
       ></svg-icon>
       <div v-if="songList.length > 0" class="play-btns">
@@ -29,7 +29,7 @@
   </header>
   <main class="song-list">
     <div
-      v-for="(song, index) in songList"
+      v-for="(song, index) in songListSorted"
       :key="song.sha"
       class="song-item"
       :class="{ active: index === songActiveIndex }"
@@ -83,6 +83,7 @@
 </template>
 
 <script setup>
+import useSong from './hooks/use-song';
 import useMusicDB from './hooks/use-music-db';
 import useSongParse from './hooks/use-song-parse';
 import useMusicSearch from './hooks/use-music-search';
@@ -93,16 +94,8 @@ const OWNER = import.meta.env.VITE_OWNER;
 const REPO = import.meta.env.VITE_REPO;
 const BRANCH = import.meta.env.PROD ? import.meta.env.VITE_BRANCH : 'dev';
 
-const loading = ref(false);
-
-const songList = ref([]);
-const songListSorted = computed(() =>
-  songList.value.sort((a, b) =>
-    a.path < b.path ? -1 : a.path > b.path ? 1 : 0,
-  ),
-);
-const songActiveIndex = ref(-1);
-const songActive = computed(() => songListSorted.value[songActiveIndex.value]);
+const { songLoading, songList, songListSorted, songActiveIndex, songActive } =
+  useSong();
 
 const audioRef = ref(null);
 const audioPlaying = ref(false);
@@ -114,10 +107,10 @@ const { searchRef, searching, searchContent, clickSearch, blurSearchInput } =
 const { resolveSongData, resolveSongTag, toSongCover } = useSongParse();
 
 onMounted(async () => {
-  loading.value = true;
+  songLoading.value = true;
   await musicDB.connect();
   await resolveSongsFromLocal();
-  loading.value = false;
+  songLoading.value = false;
 
   registerMediaEvents();
 });
@@ -132,43 +125,77 @@ async function resolveSongsFromLocal() {
   songList.value = songs;
 }
 
+// 注册媒体会话事件处理器，用于集成浏览器媒体控制（如系统媒体快捷键、通知中心播放控件等）
 function registerMediaEvents() {
+  // 检测浏览器是否支持 MediaSession API，不支持则直接返回
   if (!navigator.mediaSession) return;
 
+  // 更新媒体会话元数据
+  function updateMediaSessionMetadata() {
+    if (!songActive || !songActive._tag) return;
+
+    const metadata = new MediaMetadata({
+      title: songActive._tag.tags.title,
+      artist: songActive._tag.tags.artist,
+      album: songActive._tag.tags.album || '未知专辑',
+      artwork: [
+        { src: songActive._cover, sizes: '512x512', type: 'image/jpeg' },
+      ],
+    });
+
+    navigator.mediaSession.metadata = metadata;
+  }
+
+  // 设置 "播放" 动作处理器
   navigator.mediaSession.setActionHandler('play', () => {
+    // 如果已有活跃歌曲且处于播放状态，恢复播放；否则触发随机播放
     if (songActiveIndex.value >= 0 && audioPlaying.value) {
       clickResume();
     } else {
       clickPlayByRandom();
     }
+    updateMediaSessionMetadata();
   });
+
+  // 设置 "暂停" 动作处理器，直接调用暂停函数
   navigator.mediaSession.setActionHandler('pause', clickPause);
+  // 设置 "上一曲" 动作处理器（当前为 TODO 状态）
   navigator.mediaSession.setActionHandler('previoustrack', clickPrev);
+  // 设置 "下一曲" 动作处理器，调用下一曲函数
   navigator.mediaSession.setActionHandler('nexttrack', clickNext);
+
+  updateMediaSessionMetadata();
 }
 
+// 刷新歌曲列表函数：从远程仓库同步最新歌曲数据，更新本地数据库和歌曲列表
 async function clickRefresh() {
-  if (loading.value) return;
-  loading.value = true;
+  if (songLoading.value) return;
+  songLoading.value = true;
 
   const res = await fetch(
     `https://gitee.com/api/v5/repos/${OWNER}/${REPO}/git/trees/${BRANCH}?access_token=${ACCESS_TOKEN}`,
   );
   const data = await res.json();
 
+  // 清理本地已删除的歌曲：反向遍历当前歌曲列表（避免删除时索引错乱）
   for (let i = songList.value.length - 1; i >= 0; i -= 1) {
     const song = songList.value[i];
+    // 如果远程仓库中不存在当前歌曲（通过 SHA 唯一标识判断），则删除本地数据
     if (data.tree.find((o) => o.sha === song.sha)) continue;
+
     await musicDB.delete(song.sha);
     songList.value.splice(i, 1);
   }
 
+  // 筛选远程仓库中的新歌曲：排除已存在于本地列表的歌曲
   const newSongs = data.tree.filter(
     (o) => !songList.value.find((p) => p.sha === o.sha),
   );
+  // 批量处理新歌曲（每批10首，避免请求过于密集）
   for (let i = 0; i < newSongs.length / 10; i += 1) {
     const start = i * 10;
     const sliceSongs = newSongs.slice(start, start + 10);
+    // 并行处理当前批次的歌曲：解析歌曲数据并添加到本地数据库
     await Promise.all(
       sliceSongs.map(async (song) => {
         const blob = await resolveSongData(song);
@@ -182,11 +209,13 @@ async function clickRefresh() {
     );
     songList.value.push(...sliceSongs);
   }
-  loading.value = false;
+  songLoading.value = false;
 }
 
+// 顺序播放处理函数
 async function clickPlayByOrder(evt) {
   let index = 0;
+  // 判断条件：如果没有事件触发或事件类型是歌曲播放结束，且当前活跃歌曲索引不是最后一首
   if (
     (!evt || evt.type === 'ended') &&
     songActiveIndex.value < songList.value.length - 1
@@ -196,26 +225,33 @@ async function clickPlayByOrder(evt) {
   await clickSong(index);
 }
 
+// 随机播放处理函数
 async function clickPlayByRandom() {
   const index = Math.floor(Math.random() * songList.value.length);
   await clickSong(index);
   audioRef.value.onended = clickPlayByRandom;
 }
 
+// 歌曲搜索过滤函数：根据搜索内容决定是否显示当前歌曲
 function showSong(song) {
   if (!searchContent.value) return true;
+
   const { title, artist } = song._tag.tags;
+  // 检查标题或艺术家是否包含搜索内容（大小写敏感）
   return (
     title.includes(searchContent.value) || artist.includes(searchContent.value)
   );
 }
 
+// 歌曲点击播放处理函数，根据索引播放指定歌曲
 async function clickSong(index) {
+  // 如果当前有活跃歌曲且正在播放，先暂停当前播放并重置进度
   if (songActiveIndex.value >= 0 && audioPlaying.value) {
     clickPause();
     audioRef.value.currentTime = 0;
   }
   songActiveIndex.value = index;
+  // 等待DOM更新完成（确保新的songActive已渲染）
   await nextTick();
   await clickResume();
   audioRef.value.onended = clickPlayByOrder;
@@ -236,9 +272,11 @@ async function clickSong(index) {
   }
 }
 
+// 恢复音频播放功能，继续播放当前暂停的歌曲
 async function clickResume() {
   await audioRef.value.play();
   audioPlaying.value = true;
+  // 请求动画帧更新音频进度条（启动实时进度更新循环）
   window.requestAnimationFrame(toAudioProgrssFrame);
 }
 
