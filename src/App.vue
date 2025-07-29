@@ -139,10 +139,13 @@ function registerMediaEvents() {
       artist: songActive._tag.tags.artist,
       album: songActive._tag.tags.album || '未知专辑',
       artwork: [
-        { src: songActive._cover, sizes: '512x512', type: 'image/jpeg' },
+        {
+          src: songActive._cover,
+          sizes: '512x512',
+          type: songActive._tag.tags.picture?.format || 'image/jpeg',
+        },
       ],
     });
-
     navigator.mediaSession.metadata = metadata;
   }
 
@@ -255,21 +258,6 @@ async function clickSong(index) {
   await nextTick();
   await clickResume();
   audioRef.value.onended = clickPlayByOrder;
-
-  if (navigator.mediaSession) {
-    navigator.mediaSession.metadata = new MediaMetadata({
-      title: songActive._tag.tags.title,
-      artist: songActive._tag.tags.artist,
-      album: songActive._tag.tags.album,
-      artwork: [
-        {
-          src: songActive._cover,
-          type: songActive._tag.tags.picture?.format || 'image/png',
-          sizes: '512x512',
-        },
-      ],
-    });
-  }
 }
 
 // 恢复音频播放功能，继续播放当前暂停的歌曲
