@@ -4,21 +4,25 @@ const DB_STORE_NAME = 'songs';
 
 export default function useMusicDB() {
   let db;
+  let _resolve, _reject;
 
   const connect = () =>
     new Promise((resolve, reject) => {
-      connect._resolve = resolve;
-      connect._reject = reject;
+      _resolve = resolve;
+      _reject = reject;
+      // 如果 db 已经就绪（open 比 connect() 调用更快），直接 resolve
+      if (db) resolve(db);
     });
+
   const request = window.indexedDB.open(DB_NAME, DB_VERSION);
   request.onerror = (evt) => {
     console.error('连接 IndexDB 失败！');
-    connect._reject(evt);
+    _reject?.(evt);
   };
   request.onsuccess = (evt) => {
     console.log('连接 IndexDB 成功！');
     db = evt.target.result;
-    connect._resolve(db);
+    _resolve?.(db);
   };
   request.onupgradeneeded = (evt) => {
     evt.target.result.createObjectStore(DB_STORE_NAME, {

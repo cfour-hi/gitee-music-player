@@ -5,7 +5,7 @@ export default function useSong(musicDB) {
 
   const songList = ref([]);
   const songListSorted = computed(() =>
-    songList.value.sort((a, b) =>
+    [...songList.value].sort((a, b) =>
       a.path < b.path ? -1 : a.path > b.path ? 1 : 0,
     ),
   );
@@ -14,15 +14,6 @@ export default function useSong(musicDB) {
     () => songListSorted.value[songActiveIndex.value],
   );
 
-  async function resolveSongsFromLocal() {
-    const songs = await musicDB.get();
-    for (const song of songs) {
-      song._tag = await resolveSongTag(song.blob);
-      song._cover = toSongCover(song._tag);
-      song._src = URL.createObjectURL(song.blob);
-    }
-    songList.value = songs;
-  }
 
   return {
     songLoading,

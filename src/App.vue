@@ -98,8 +98,7 @@ const OWNER = import.meta.env.VITE_OWNER;
 const REPO = import.meta.env.VITE_REPO;
 const BRANCH = import.meta.env.PROD ? import.meta.env.VITE_BRANCH : 'dev';
 
-const { songLoading, songList, songListSorted, songActiveIndex, songActive } =
-  useSong();
+const { songLoading, songList, songListSorted, songActiveIndex, songActive } = useSong();
 
 const audioRef = ref(null);
 const audioPlaying = ref(false);
@@ -136,19 +135,19 @@ function registerMediaEvents() {
 
   // 更新媒体会话元数据
   function updateMediaSessionMetadata() {
-    if (!songActive || !songActive._tag) return;
+    if (!songActive.value || !songActive.value._tag) return;
 
     const metadata = new MediaMetadata({
-      title: songActive._tag.tags.title,
-      artist: songActive._tag.tags.artist,
-      album: songActive._tag.tags.album || '未知专辑',
-      artwork: [
+      title: songActive.value._tag.tags.title,
+      artist: songActive.value._tag.tags.artist,
+      album: songActive.value._tag.tags.album || '未知专辑',
+      artwork: songActive.value._cover ? [
         {
-          src: songActive._cover,
+          src: songActive.value._cover,
           sizes: '512x512',
-          type: songActive._tag.tags.picture?.format || 'image/jpeg',
+          type: songActive.value._tag.tags.picture?.format || 'image/jpeg',
         },
-      ],
+      ] : [],
     });
     navigator.mediaSession.metadata = metadata;
   }
@@ -206,18 +205,19 @@ async function clickRefresh() {
     const start = i * 10;
     const sliceSongs = newSongs.slice(start, start + 10);
     // 并行处理当前批次的歌曲：解析歌曲数据并添加到本地数据库
-    await Promise.all(
+    const resolvedSongs = await Promise.all(
       sliceSongs.map(async (song) => {
         const blob = await resolveSongData(song);
-        return musicDB.add({
+        await musicDB.add({
           blob,
           path: song.path,
           sha: song.sha,
           url: song.url,
         });
+        return song;
       }),
     );
-    songList.value.push(...sliceSongs);
+    songList.value.push(...resolvedSongs);
   }
   songLoading.value = false;
 }
@@ -293,6 +293,10 @@ function clickToTop() {
 
 <style scoped>
 header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #1e201e;
   display: flex;
   align-items: center;
   height: 1.2rem;
