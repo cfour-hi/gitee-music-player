@@ -24,19 +24,20 @@
       ref="searchRef"
       type="text"
       class="input-search"
+      placeholder="搜索歌曲、歌手、专辑"
       @blur="blurSearchInput"
     />
+    <svg-icon v-show="searching" name="close" class="search-close" @click="closeSearch"></svg-icon>
   </header>
   <main class="song-list">
     <div
-      v-for="(song, index) in songListSorted"
+      v-for="(song, index) in filteredSongs"
       :key="song.sha"
       class="song-item"
-      :class="{ active: index === songActiveIndex }"
-      v-show="showSong(song)"
-      @click="clickSong(index)"
+      :class="{ active: songListSorted.indexOf(song) === songActiveIndex }"
+      @click="clickSong(songListSorted.indexOf(song))"
     >
-      <img :src="song._cover" class="song-cover" />
+      <img :src="song._cover || ''" class="song-cover" />
       <div class="song-info">
         <div class="song-name ellipsis">
           {{ song._tag && song._tag.tags.title }}
@@ -45,6 +46,9 @@
           {{ song._tag && song._tag.tags.artist }}
         </div>
       </div>
+    </div>
+    <div v-if="filteredSongs.length === 0 && searchContent" class="search-empty">
+      没有找到「{{ searchContent }}」相关的歌曲
     </div>
   </main>
   <div class="to-top" @click="clickToTop">
@@ -57,7 +61,7 @@
     >
       <audio ref="audioRef" :src="songActive._src"></audio>
     </div>
-    <img :src="songActive._cover" class="song-cover" />
+    <img :src="songActive._cover || ''" class="song-cover" />
     <div class="song-info">
       <div class="song-name ellipsis">
         {{ songActive._tag.tags.title }}
@@ -102,8 +106,8 @@ const audioPlaying = ref(false);
 const audioProgress = ref(0);
 
 const musicDB = useMusicDB();
-const { searchRef, searching, searchContent, clickSearch, blurSearchInput } =
-  useMusicSearch();
+const { searchRef, searching, searchContent, filteredSongs, clickSearch, closeSearch, blurSearchInput } =
+  useMusicSearch(songListSorted);
 const { resolveSongData, resolveSongTag, toSongCover } = useSongParse();
 
 onMounted(async () => {
@@ -180,6 +184,9 @@ async function clickRefresh() {
   );
   const data = await res.json();
 
+  const AUDIO_EXTS = ['mp3', 'm4a', 'flac', 'ogg', 'wav'];
+  const isAudio = (o) => AUDIO_EXTS.includes(o.path?.split('.').pop()?.toLowerCase());
+
   // 清理本地已删除的歌曲：反向遍历当前歌曲列表（避免删除时索引错乱）
   for (let i = songList.value.length - 1; i >= 0; i -= 1) {
     const song = songList.value[i];
@@ -192,7 +199,7 @@ async function clickRefresh() {
 
   // 筛选远程仓库中的新歌曲：排除已存在于本地列表的歌曲
   const newSongs = data.tree.filter(
-    (o) => !songList.value.find((p) => p.sha === o.sha),
+    (o) => isAudio(o) && !songList.value.find((p) => p.sha === o.sha),
   );
   // 批量处理新歌曲（每批10首，避免请求过于密集）
   for (let i = 0; i < newSongs.length / 10; i += 1) {
@@ -235,18 +242,7 @@ async function clickPlayByRandom() {
   audioRef.value.onended = clickPlayByRandom;
 }
 
-// 歌曲搜索过滤函数：根据搜索内容决定是否显示当前歌曲
-function showSong(song) {
-  if (!searchContent.value) return true;
 
-  const { title, artist } = song._tag.tags;
-  // 检查标题或艺术家是否包含搜索内容（大小写敏感）
-  return (
-    title.includes(searchContent.value) || artist.includes(searchContent.value)
-  );
-}
-
-// 歌曲点击播放处理函数，根据索引播放指定歌曲
 async function clickSong(index) {
   // 如果当前有活跃歌曲且正在播放，先暂停当前播放并重置进度
   if (songActiveIndex.value >= 0 && audioPlaying.value) {
@@ -300,6 +296,7 @@ header {
   display: flex;
   align-items: center;
   height: 1.2rem;
+  padding: 0 0.16rem;
 }
 
 header .toolbar {
@@ -343,12 +340,26 @@ header button .svg-icon {
 
 .input-search {
   box-sizing: border-box;
-  width: calc(100% - 0.32rem);
-  padding: 0.04rem;
+  flex: auto;
+  width: 0;
+  padding: 0.04rem 0.1rem;
   border: none;
   border-radius: 0.04rem;
-  margin: 0 0.16rem;
   color: #1e201e;
+}
+
+.search-close {
+  flex: 0 0 1.2rem;
+  padding: 0.4rem 0;
+  font-size: 0.35rem;
+  cursor: pointer;
+}
+
+.search-empty {
+  text-align: center;
+  padding: 1rem 0;
+  color: #888;
+  font-size: 0.28rem;
 }
 
 .song-list {

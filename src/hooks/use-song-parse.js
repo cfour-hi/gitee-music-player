@@ -18,7 +18,9 @@ export default function useSongParse() {
     for (let i = 0; i < binaryData.length; i++) {
       uint8Array[i] = binaryData.charCodeAt(i);
     }
-    return new Blob([uint8Array], { type: 'audio/mp3' });
+    const ext = song.path?.split('.').pop()?.toLowerCase();
+    const mimeMap = { mp3: 'audio/mpeg', m4a: 'audio/mp4', flac: 'audio/flac', ogg: 'audio/ogg', wav: 'audio/wav' };
+    return new Blob([uint8Array], { type: mimeMap[ext] || 'audio/mpeg' });
   }
 
   function resolveSongTag(blob) {
@@ -31,8 +33,9 @@ export default function useSongParse() {
   }
 
   function toSongCover(songTag) {
-    const { data, format } = songTag.tags.picture;
-    const blob = new Blob([new Uint8Array(data)], { type: format });
+    const picture = songTag.tags.picture;
+    if (!picture) return null;
+    const blob = new Blob([new Uint8Array(picture.data)], { type: picture.format });
     return URL.createObjectURL(blob);
   }
 
