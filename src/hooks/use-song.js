@@ -21,6 +21,5 @@ export default function useSong(musicDB) {
     songListSorted,
     songActiveIndex,
     songActive,
-    resolveSongsFromLocal,
   };
 }
