@@ -301,6 +301,8 @@ header {
   align-items: center;
   height: 1.2rem;
   padding: 0 0.16rem;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 header .toolbar {
