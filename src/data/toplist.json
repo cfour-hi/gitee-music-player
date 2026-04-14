@@ -1,0 +1,1376 @@
+{
+  "updatedAt": "2026-10-14T07:06:12.623Z",
+  "charts": {
+    "hot": {
+      "key": "hot",
+      "name": "热歌榜",
+      "id": 3778678,
+      "tracks": [
+        {
+          "rank": 1,
+          "id": 287398,
+          "name": "我不难过",
+          "artists": "孙燕姿",
+          "album": "未完成",
+          "cover": "http://p4.music.126.net/Pzxy6py26NgNmhJjYMf2RQ==/109951169724216323.jpg?param=200y200",
+          "duration": 320400
+        },
+        {
+          "rank": 2,
+          "id": 1973665667,
+          "name": "海屿你",
+          "artists": "马也_Crabbit",
+          "album": "海屿你",
+          "cover": "http://p3.music.126.net/RfguLkQJ8aMVkiIaxdy70Q==/109951170483263672.jpg?param=200y200",
+          "duration": 295940
+        },
+        {
+          "rank": 3,
+          "id": 3342319503,
+          "name": "明知故犯",
+          "artists": "Max李玄",
+          "album": "失温",
+          "cover": "http://p3.music.126.net/H2DFRdwP2y5SuCAn-Tuikw==/109951172568091306.jpg?param=200y200",
+          "duration": 166416
+        },
+        {
+          "rank": 4,
+          "id": 3436855494,
+          "name": "自由的你",
+          "artists": "G.E.M.邓紫棋",
+          "album": "自由的你",
+          "cover": "http://p4.music.126.net/G4Vtk4Je9Sj8zB4KGlxprw==/109951174017350276.jpg?param=200y200",
+          "duration": 296900
+        },
+        {
+          "rank": 5,
+          "id": 3399839173,
+          "name": "甲乙丙丁 (你我怎么两清)",
+          "artists": "李佳薇",
+          "album": "甲乙丙丁",
+          "cover": "http://p3.music.126.net/H9iDvukTit_jx-fmhhvXUQ==/109951173482378749.jpg?param=200y200",
+          "duration": 210461
+        },
+        {
+          "rank": 6,
+          "id": 2163210456,
+          "name": "两 难",
+          "artists": "加木",
+          "album": "两 难",
+          "cover": "http://p4.music.126.net/Qvenb5t_hL37b7hRfscjaw==/109951169686160429.jpg?param=200y200",
+          "duration": 170000
+        },
+        {
+          "rank": 7,
+          "id": 3432893870,
+          "name": "全息恋人",
+          "artists": "栾一鸣Floscar",
+          "album": "全息恋人",
+          "cover": "http://p4.music.126.net/oxXWRp9IKoKStlYHdx4YkA==/109951173900088235.jpg?param=200y200",
+          "duration": 147200
+        },
+        {
+          "rank": 8,
+          "id": 167691,
+          "name": "天龙八部之宿敌",
+          "artists": "许嵩",
+          "album": "天龙八部之宿敌",
+          "cover": "http://p4.music.126.net/Ezo6K3rPFowvnkDtxf-w6Q==/109951172321459335.jpg?param=200y200",
+          "duration": 263340
+        },
+        {
+          "rank": 9,
+          "id": 2600493765,
+          "name": "恋人",
+          "artists": "李荣浩",
+          "album": "黑马",
+          "cover": "http://p4.music.126.net/0bk3Iqe2OZGBH2Iuyx7RzA==/109951170045577565.jpg?param=200y200",
+          "duration": 275912
+        },
+        {
+          "rank": 10,
+          "id": 3397415408,
+          "name": "回到你身边",
+          "artists": "h3R3",
+          "album": "回响",
+          "cover": "http://p3.music.126.net/yed2hVZZwFNeSkTynWPaJQ==/109951173491736376.jpg?param=200y200",
+          "duration": 231119
+        },
+        {
+          "rank": 11,
+          "id": 1456890009,
+          "name": "罗生门（Follow）",
+          "artists": "梨冻紧 / Wiz_H张子豪",
+          "album": "罗生门（Follow）",
+          "cover": "http://p3.music.126.net/yN1ke1xYMJ718FiHaDWtYQ==/109951165076380471.jpg?param=200y200",
+          "duration": 243754
+        },
+        {
+          "rank": 12,
+          "id": 2097443876,
+          "name": "碎碎念",
+          "artists": "队长",
+          "album": "碎碎念",
+          "cover": "http://p4.music.126.net/RYIrCEYzgeAD85DJ0rgOQA==/109951169256300966.jpg?param=200y200",
+          "duration": 132748
+        },
+        {
+          "rank": 13,
+          "id": 3382908505,
+          "name": "玻璃",
+          "artists": "Gareth.T",
+          "album": "玻璃",
+          "cover": "http://p4.music.126.net/MSKoQP60up7v3y1P1d3JIQ==/109951173234747322.jpg?param=200y200",
+          "duration": 185040
+        },
+        {
+          "rank": 14,
+          "id": 287063,
+          "name": "我怀念的",
+          "artists": "孙燕姿",
+          "album": "逆光",
+          "cover": "http://p4.music.126.net/wF25xzePLml5EGUWM2eInw==/109951173219336672.jpg?param=200y200",
+          "duration": 289066
+        },
+        {
+          "rank": 15,
+          "id": 2018733994,
+          "name": "遐想",
+          "artists": "郑润泽",
+          "album": "梦游",
+          "cover": "http://p3.music.126.net/Ws93IUrJGR_lK-QEsdKTWw==/109951168408373477.jpg?param=200y200",
+          "duration": 189719
+        },
+        {
+          "rank": 16,
+          "id": 1842728629,
+          "name": "如果呢",
+          "artists": "郑润泽",
+          "album": "如果呢",
+          "cover": "http://p3.music.126.net/-xMsNLpquZTmMZlIztTgHg==/109951165953469081.jpg?param=200y200",
+          "duration": 257532
+        },
+        {
+          "rank": 17,
+          "id": 316157,
+          "name": "茶汤",
+          "artists": "郁可唯",
+          "album": "微加幸福",
+          "cover": "http://p4.music.126.net/ugJH-gpHKX6y6p-6MkIIsQ==/109951163187409545.jpg?param=200y200",
+          "duration": 308773
+        },
+        {
+          "rank": 18,
+          "id": 273114,
+          "name": "失眠",
+          "artists": "Suki刘舒妤",
+          "album": "Ladies Night",
+          "cover": "http://p4.music.126.net/-ruDNWFD1mMTGMNmNPzUIg==/109951173355316164.jpg?param=200y200",
+          "duration": 211301
+        },
+        {
+          "rank": 19,
+          "id": 215382,
+          "name": "雨过后的风景",
+          "artists": "Dizzy Dizzo (蔡诗芸)",
+          "album": "黑色彩虹",
+          "cover": "http://p3.music.126.net/6Y7tdO1ltV0khSYWLFHODQ==/109951173146696212.jpg?param=200y200",
+          "duration": 243133
+        },
+        {
+          "rank": 20,
+          "id": 1303464858,
+          "name": "于是",
+          "artists": "郑润泽",
+          "album": "于是",
+          "cover": "http://p3.music.126.net/PEGvmO3OqgGOkx4m9qxAJA==/109951163478499713.jpg?param=200y200",
+          "duration": 232835
+        },
+        {
+          "rank": 21,
+          "id": 3333988321,
+          "name": "一半一半",
+          "artists": "Top Barry / INDEcompany",
+          "album": "一半一半",
+          "cover": "http://p4.music.126.net/EgbPD3CwVQojZ4OWse4YrA==/109951172511748152.jpg?param=200y200",
+          "duration": 235285
+        },
+        {
+          "rank": 22,
+          "id": 2755710644,
+          "name": "左转灯 (1000 Times +1)",
+          "artists": "派伟俊 / mac ova seas",
+          "album": "左转灯 (1000 Times +1)",
+          "cover": "http://p4.music.126.net/ODlrxB8b_86bDZTuCXGK1w==/109951172153456358.jpg?param=200y200",
+          "duration": 197384
+        },
+        {
+          "rank": 23,
+          "id": 1472921626,
+          "name": "刻在我心底的名字",
+          "artists": "卢广仲",
+          "album": "刻在我心底的名字",
+          "cover": "http://p3.music.126.net/hP30WVUoRy-wE3c-prxr0g==/109951165256630492.jpg?param=200y200",
+          "duration": 320165
+        },
+        {
+          "rank": 24,
+          "id": 1851652156,
+          "name": "忘不掉的你",
+          "artists": "h3R3",
+          "album": "忘不掉的你",
+          "cover": "http://p4.music.126.net/4BCskpY6Rmm-QReHnY8W6Q==/109951166071009318.jpg?param=200y200",
+          "duration": 172173
+        },
+        {
+          "rank": 25,
+          "id": 1827600686,
+          "name": "还是会想你",
+          "artists": "林达浪 / h3R3",
+          "album": "还是会想你",
+          "cover": "http://p3.music.126.net/9FhSEQtMhP-JP3_U84YfWQ==/109951165798773745.jpg?param=200y200",
+          "duration": 190063
+        },
+        {
+          "rank": 26,
+          "id": 3440961675,
+          "name": "睡前别想太多",
+          "artists": "李雨霏_晚饭",
+          "album": "睡前别想太多",
+          "cover": "http://p3.music.126.net/CdAZ76__lHkE_HcjXgR_4w==/109951173999807018.jpg?param=200y200",
+          "duration": 210079
+        },
+        {
+          "rank": 27,
+          "id": 1391891631,
+          "name": "嗜好",
+          "artists": "颜人中",
+          "album": "嗜好",
+          "cover": "http://p3.music.126.net/J6HaJjtgv-yVVjyUm-h-AA==/109951164373633387.jpg?param=200y200",
+          "duration": 284113
+        },
+        {
+          "rank": 28,
+          "id": 1918576268,
+          "name": "红",
+          "artists": "罗言",
+          "album": "When the world is came，take it！",
+          "cover": "http://p3.music.126.net/G-inyKjA-jO5MuOuV3g7Pg==/109951167027986653.jpg?param=200y200",
+          "duration": 161585
+        },
+        {
+          "rank": 29,
+          "id": 287719,
+          "name": "开始懂了",
+          "artists": "孙燕姿",
+          "album": "我要的幸福",
+          "cover": "http://p4.music.126.net/1HJILQwc62AfvcXkGgVJHQ==/109951165549820772.jpg?param=200y200",
+          "duration": 271493
+        },
+        {
+          "rank": 30,
+          "id": 316100,
+          "name": "雨爱",
+          "artists": "杨丞琳",
+          "album": "雨爱",
+          "cover": "http://p3.music.126.net/Qt6sfLxRCscFZVXhbQ4bfg==/109951172020385959.jpg?param=200y200",
+          "duration": 260480
+        },
+        {
+          "rank": 31,
+          "id": 2701139855,
+          "name": "颜色",
+          "artists": "Gareth.T",
+          "album": "颜色",
+          "cover": "http://p3.music.126.net/NBYS2W-x3p2IVNvHMcylMg==/109951170940524301.jpg?param=200y200",
+          "duration": 211040
+        },
+        {
+          "rank": 32,
+          "id": 1363553440,
+          "name": "出现又离开 (Live)",
+          "artists": "梁博",
+          "album": "我是唱作人 第2期",
+          "cover": "http://p3.music.126.net/mAV2OH6nPJd4XLwn80kwpA==/109951164054054313.jpg?param=200y200",
+          "duration": 403968
+        },
+        {
+          "rank": 33,
+          "id": 3404238777,
+          "name": "周旋",
+          "artists": "王以太 / 艾热 AIR",
+          "album": "太热爱",
+          "cover": "http://p4.music.126.net/rDv1qod6MDsYcEHKtxCdAA==/109951173532089932.jpg?param=200y200",
+          "duration": 290731
+        },
+        {
+          "rank": 34,
+          "id": 2740858325,
+          "name": "Star Crossing Night (feat. GALI)",
+          "artists": "徐明浩 / GALI",
+          "album": "Star Crossing Night (feat. GALI)",
+          "cover": "http://p3.music.126.net/fsz6GAKO1-khteFArDidjA==/109951171942679749.jpg?param=200y200",
+          "duration": 205000
+        },
+        {
+          "rank": 35,
+          "id": 2083785152,
+          "name": "唯一",
+          "artists": "G.E.M.邓紫棋",
+          "album": "T.I.M.E.",
+          "cover": "http://p3.music.126.net/aJWtwvdYRXvKUpAE2C6NoA==/109951168919708423.jpg?param=200y200",
+          "duration": 253735
+        },
+        {
+          "rank": 36,
+          "id": 28403111,
+          "name": "特别的人",
+          "artists": "方大同",
+          "album": "危险世界",
+          "cover": "http://p3.music.126.net/3Y0A55OzEnqKNiH5ODA54A==/109951172683046522.jpg?param=200y200",
+          "duration": 259064
+        },
+        {
+          "rank": 37,
+          "id": 3416333610,
+          "name": "再见太难",
+          "artists": "利得汇",
+          "album": "再见太难",
+          "cover": "http://p3.music.126.net/KPtNGvc1BM-3ShqTT9nd6A==/109951173693092478.jpg?param=200y200",
+          "duration": 288417
+        },
+        {
+          "rank": 38,
+          "id": 2652647276,
+          "name": "我好想你 (苏打绿版)",
+          "artists": "苏打绿",
+          "album": "秋：故事 (苏打绿版)",
+          "cover": "http://p4.music.126.net/uNLLdw0Pxd2NT4Q_aP2tUQ==/109951170216075185.jpg?param=200y200",
+          "duration": 329206
+        },
+        {
+          "rank": 39,
+          "id": 2741144144,
+          "name": "99",
+          "artists": "TizzyT",
+          "album": "99",
+          "cover": "http://p3.music.126.net/D-kiZM7mbHrqdB6X8Yoi8Q==/109951171947326885.jpg?param=200y200",
+          "duration": 282188
+        },
+        {
+          "rank": 40,
+          "id": 2041026502,
+          "name": "愿与愁",
+          "artists": "林俊杰",
+          "album": "愿与愁",
+          "cover": "http://p3.music.126.net/vtnI8JpimWnZSzkXdmIB3w==/109951168558210782.jpg?param=200y200",
+          "duration": 231586
+        },
+        {
+          "rank": 41,
+          "id": 167655,
+          "name": "幻听",
+          "artists": "许嵩",
+          "album": "梦游计",
+          "cover": "http://p3.music.126.net/7X3irAHmXIkyZKu1OzDZdQ==/109951172321460834.jpg?param=200y200",
+          "duration": 273266
+        },
+        {
+          "rank": 42,
+          "id": 1403318151,
+          "name": "把回忆拼好给你",
+          "artists": "王贰浪",
+          "album": "把回忆拼好给你",
+          "cover": "http://p3.music.126.net/CBx2K_jEN3SNWwYztagPPw==/109951164485969446.jpg?param=200y200",
+          "duration": 381000
+        },
+        {
+          "rank": 43,
+          "id": 30612793,
+          "name": "多远都要在一起",
+          "artists": "G.E.M.邓紫棋",
+          "album": "新的心跳",
+          "cover": "http://p3.music.126.net/kVwk6b8Qdya8oDyGDcyAVA==/1364493930777368.jpg?param=200y200",
+          "duration": 216880
+        },
+        {
+          "rank": 44,
+          "id": 421423806,
+          "name": "小半",
+          "artists": "陈粒",
+          "album": "小梦大半",
+          "cover": "http://p3.music.126.net/HQxTggMCB7AHUXN-ZFEtmA==/1371091013186741.jpg?param=200y200",
+          "duration": 297240
+        },
+        {
+          "rank": 45,
+          "id": 1359356908,
+          "name": "晚安",
+          "artists": "颜人中",
+          "album": "晚安",
+          "cover": "http://p3.music.126.net/-rC55JsnmEWvafJQsAZaWw==/109951170473693123.jpg?param=200y200",
+          "duration": 289184
+        },
+        {
+          "rank": 46,
+          "id": 3387477661,
+          "name": "梦哑",
+          "artists": "任然",
+          "album": "梦哑",
+          "cover": "http://p3.music.126.net/7tJ8BtV2GSKTyWXyCvdEUg==/109951173646389004.jpg?param=200y200",
+          "duration": 234543
+        },
+        {
+          "rank": 47,
+          "id": 479979029,
+          "name": "Lost ",
+          "artists": "满舒克 / Jony J",
+          "album": "Almost Perfect",
+          "cover": "http://p4.music.126.net/5qz5CVIGDWLx7OXyp3rlwg==/109951173203263481.jpg?param=200y200",
+          "duration": 250666
+        },
+        {
+          "rank": 48,
+          "id": 1398283847,
+          "name": "我只能离开",
+          "artists": "颜人中",
+          "album": "初恋那件小事 电视剧原声带",
+          "cover": "http://p4.music.126.net/5GPFbTQU-kW57PGv_7LeBw==/109951164440649436.jpg?param=200y200",
+          "duration": 230000
+        },
+        {
+          "rank": 49,
+          "id": 254059,
+          "name": "情歌",
+          "artists": "梁静茹",
+          "album": "现在开始我爱你",
+          "cover": "http://p4.music.126.net/QKCkMMW_fPDcczRNb0qZyg==/109951168163257789.jpg?param=200y200",
+          "duration": 263293
+        },
+        {
+          "rank": 50,
+          "id": 21178386,
+          "name": "Whatever Happens",
+          "artists": "Michael Jackson",
+          "album": "Invincible",
+          "cover": "http://p4.music.126.net/Iik8WEA3vOyPWMHniVR47A==/109951165992940172.jpg?param=200y200",
+          "duration": 296733
+        }
+      ]
+    },
+    "rising": {
+      "key": "rising",
+      "name": "飙升榜",
+      "id": 19723756,
+      "tracks": [
+        {
+          "rank": 1,
+          "id": 3432893870,
+          "name": "全息恋人",
+          "artists": "栾一鸣Floscar",
+          "album": "全息恋人",
+          "cover": "http://p4.music.126.net/oxXWRp9IKoKStlYHdx4YkA==/109951173900088235.jpg?param=200y200",
+          "duration": 147200
+        },
+        {
+          "rank": 2,
+          "id": 3436855494,
+          "name": "自由的你",
+          "artists": "G.E.M.邓紫棋",
+          "album": "自由的你",
+          "cover": "http://p3.music.126.net/G4Vtk4Je9Sj8zB4KGlxprw==/109951174017350276.jpg?param=200y200",
+          "duration": 296900
+        },
+        {
+          "rank": 3,
+          "id": 3443989683,
+          "name": "Grey trails live on",
+          "artists": "Dirk / Echo",
+          "album": "Grey trails live on",
+          "cover": "http://p4.music.126.net/LVWbEEo_AfoOmDFJGkkhog==/109951174052257985.jpg?param=200y200",
+          "duration": 272597
+        },
+        {
+          "rank": 4,
+          "id": 211520,
+          "name": "你不要那样看着我的眼睛",
+          "artists": "蔡琴",
+          "album": "你不要那样看着我的眼睛",
+          "cover": "http://p4.music.126.net/2XGh-t1njea347G0mndEpA==/109951165705461811.jpg?param=200y200",
+          "duration": 273000
+        },
+        {
+          "rank": 5,
+          "id": 2618165651,
+          "name": "爱欲求",
+          "artists": "柴行敏",
+          "album": "爱欲求",
+          "cover": "http://p4.music.126.net/iWDUu6qrTwkKEBw_ndr7eg==/109951169879827918.jpg?param=200y200",
+          "duration": 142657
+        },
+        {
+          "rank": 6,
+          "id": 167691,
+          "name": "天龙八部之宿敌",
+          "artists": "许嵩",
+          "album": "天龙八部之宿敌",
+          "cover": "http://p3.music.126.net/Ezo6K3rPFowvnkDtxf-w6Q==/109951172321459335.jpg?param=200y200",
+          "duration": 263340
+        },
+        {
+          "rank": 7,
+          "id": 2741144144,
+          "name": "99",
+          "artists": "TizzyT",
+          "album": "99",
+          "cover": "http://p4.music.126.net/D-kiZM7mbHrqdB6X8Yoi8Q==/109951171947326885.jpg?param=200y200",
+          "duration": 282188
+        },
+        {
+          "rank": 8,
+          "id": 3426600808,
+          "name": "失物招领",
+          "artists": "刘学义",
+          "album": "失物招领",
+          "cover": "http://p3.music.126.net/5-azEx34N7OnRyB3VBWo6g==/109951174017706467.jpg?param=200y200",
+          "duration": 268416
+        },
+        {
+          "rank": 9,
+          "id": 3440491079,
+          "name": "月亮之下",
+          "artists": "黄龄 / 邓典",
+          "album": "月亮之下",
+          "cover": "http://p3.music.126.net/ZqGdzPvefxAeWLHEgd_rug==/109951173991178309.jpg?param=200y200",
+          "duration": 168021
+        },
+        {
+          "rank": 10,
+          "id": 3431614646,
+          "name": "失忆 (Live版)",
+          "artists": "李佳薇 / 庄心妍",
+          "album": "天赐的声音第七季 第12期",
+          "cover": "http://p4.music.126.net/Ep1QVpM5EIOBDDldtSvbOw==/109951173886588062.jpg?param=200y200",
+          "duration": 216879
+        },
+        {
+          "rank": 11,
+          "id": 3438045876,
+          "name": "归向",
+          "artists": "DL.梦伴 / 小风9233 / 造梦师DreamMaker",
+          "album": "归向",
+          "cover": "http://p3.music.126.net/Sla8w8h10QcBa4YRFmev-w==/109951173960968886.jpg?param=200y200",
+          "duration": 183963
+        },
+        {
+          "rank": 12,
+          "id": 27562048,
+          "name": "You Are All I Need",
+          "artists": "FLY COAST / 二宮愛",
+          "album": "Flight Number 001",
+          "cover": "http://p3.music.126.net/1Dd1l9UDGWzsWudg9Ik8SA==/109951168475794909.jpg?param=200y200",
+          "duration": 239813
+        },
+        {
+          "rank": 13,
+          "id": 3437428784,
+          "name": "Elements",
+          "artists": "John Michael Howell / ZVC",
+          "album": "Elements",
+          "cover": "http://p3.music.126.net/JpyFFUYqrVXfWMwTBMSuPA==/109951173976310221.jpg?param=200y200",
+          "duration": 160816
+        },
+        {
+          "rank": 14,
+          "id": 3439405403,
+          "name": "笨蛋",
+          "artists": "汪苏泷 / 五月天 阿信",
+          "album": "笨蛋",
+          "cover": "http://p4.music.126.net/0eZjQetOyZmahM5pNsfIgQ==/109951173977220433.jpg?param=200y200",
+          "duration": 250666
+        },
+        {
+          "rank": 15,
+          "id": 327367,
+          "name": "趁早",
+          "artists": "张惠妹",
+          "album": "1996-2002妹力最精选",
+          "cover": "http://p4.music.126.net/MSIKftat8ekqsOQmTLCl9Q==/109951172747548189.jpg?param=200y200",
+          "duration": 324640
+        },
+        {
+          "rank": 16,
+          "id": 3443587581,
+          "name": "We Never",
+          "artists": "SugarPro",
+          "album": "Claude",
+          "cover": "http://p3.music.126.net/P6x95UMMpWW_G0cI7UINMw==/109951173978094167.jpg?param=200y200",
+          "duration": 161933
+        },
+        {
+          "rank": 17,
+          "id": 3399732249,
+          "name": "难以启齿的柔弱",
+          "artists": "金志文",
+          "album": "720",
+          "cover": "http://p3.music.126.net/w4kZ5igqrY2dFaaJsjBPnQ==/109951173481227975.jpg?param=200y200",
+          "duration": 266730
+        },
+        {
+          "rank": 18,
+          "id": 3444775814,
+          "name": "kiss kiss（拥吻）",
+          "artists": "三棱镜",
+          "album": "kiss kiss（拥吻）",
+          "cover": "http://p3.music.126.net/tkYDrVUgeQjVV6Ct7zxV8g==/109951174066408927.jpg?param=200y200",
+          "duration": 125898
+        },
+        {
+          "rank": 19,
+          "id": 3440961675,
+          "name": "睡前别想太多",
+          "artists": "李雨霏_晚饭",
+          "album": "睡前别想太多",
+          "cover": "http://p3.music.126.net/CdAZ76__lHkE_HcjXgR_4w==/109951173999807018.jpg?param=200y200",
+          "duration": 210079
+        },
+        {
+          "rank": 20,
+          "id": 3439389416,
+          "name": "思念若是一首诗",
+          "artists": "万妮达Vinida Weng",
+          "album": "思念若是一首诗",
+          "cover": "http://p4.music.126.net/ktK7yYq5W_7uSOYVc9-R-A==/109951173977035549.jpg?param=200y200",
+          "duration": 232627
+        },
+        {
+          "rank": 21,
+          "id": 3425832887,
+          "name": "GGEZ",
+          "artists": "M.Sasuke / 概念黁 / Sugar张惠晴",
+          "album": "GGEZ",
+          "cover": "http://p3.music.126.net/486EO2Aw9v05iPhCmI256A==/109951173823280680.jpg?param=200y200",
+          "duration": 152540
+        },
+        {
+          "rank": 22,
+          "id": 286959,
+          "name": "当冬夜渐暖",
+          "artists": "孙燕姿",
+          "album": "是时候",
+          "cover": "http://p3.music.126.net/I9O-KpO4bLC6LWOKYfJj4Q==/109951165992337446.jpg?param=200y200",
+          "duration": 287853
+        },
+        {
+          "rank": 23,
+          "id": 3423023201,
+          "name": "Lost Control Deep House",
+          "artists": "迪词doci",
+          "album": "Lost Control Deep House",
+          "cover": "http://p4.music.126.net/RG8-0nwboMk9IKkvzUhrDA==/109951173775951241.jpg?param=200y200",
+          "duration": 217000
+        },
+        {
+          "rank": 24,
+          "id": 3410182388,
+          "name": "Ain't In LA",
+          "artists": "ADÉLA",
+          "album": "Ain't In LA",
+          "cover": "http://p3.music.126.net/JZxsAQlrkUnGa0Zrt2HEyw==/109951173625800598.jpg?param=200y200",
+          "duration": 184927
+        },
+        {
+          "rank": 25,
+          "id": 3438007914,
+          "name": "星月",
+          "artists": "邵雨薇",
+          "album": "甜蜜暴击电视剧原声带",
+          "cover": "http://p3.music.126.net/kdCKXzuprQCVAf9H8U00HA==/109951173972240450.jpg?param=200y200",
+          "duration": 226538
+        },
+        {
+          "rank": 26,
+          "id": 3431361982,
+          "name": "Nicole Kidman",
+          "artists": "ADÉLA",
+          "album": "PRIMA",
+          "cover": "http://p4.music.126.net/etNzALzfzc3eUnCa3Ha_2Q==/109951173885939712.jpg?param=200y200",
+          "duration": 181270
+        },
+        {
+          "rank": 27,
+          "id": 3446271874,
+          "name": "人生剩下的难题",
+          "artists": "廖俊涛",
+          "album": "俊涛的猜想",
+          "cover": "http://p4.music.126.net/keJU1Z7lQPUvJnaEYpJI0g==/109951174086638117.jpg?param=200y200",
+          "duration": 379545
+        },
+        {
+          "rank": 28,
+          "id": 33887233,
+          "name": "给我的快乐",
+          "artists": "胡夏",
+          "album": "神犬小七 电视原声带",
+          "cover": "http://p3.music.126.net/yeg2OxOwZ7ALcVUkjWihTQ==/7972558814719047.jpg?param=200y200",
+          "duration": 227377
+        },
+        {
+          "rank": 29,
+          "id": 3391179506,
+          "name": "我听见了，你的痛苦成立",
+          "artists": "供销社乐队",
+          "album": "我听见了，你的痛苦成立",
+          "cover": "http://p4.music.126.net/djCHbIWOv0FCYiumpNEBZQ==/109951173349720959.jpg?param=200y200",
+          "duration": 211114
+        },
+        {
+          "rank": 30,
+          "id": 28283344,
+          "name": "渴",
+          "artists": "孙燕姿",
+          "album": "克卜勒",
+          "cover": "http://p4.music.126.net/IpXZzvX4xgseWGfZhXHCyQ==/109951163115291601.jpg?param=200y200",
+          "duration": 282506
+        },
+        {
+          "rank": 31,
+          "id": 27536479,
+          "name": "Whatever Happens",
+          "artists": "Michael Jackson",
+          "album": "The Indispensable Collection",
+          "cover": "http://p4.music.126.net/YiIY6Dm8PgrvTASFNKha5Q==/6661940953389993.jpg?param=200y200",
+          "duration": 296733
+        },
+        {
+          "rank": 32,
+          "id": 1844149003,
+          "name": "噩梦",
+          "artists": "TizzyT",
+          "album": "Tizzy T",
+          "cover": "http://p3.music.126.net/1l4Rf_t9Lw0PQvhRyNh11g==/109951172945880954.jpg?param=200y200",
+          "duration": 198391
+        },
+        {
+          "rank": 33,
+          "id": 3439030728,
+          "name": "删了一百遍",
+          "artists": "黄丽玲",
+          "album": "删了一百遍",
+          "cover": "http://p3.music.126.net/MNLx-1eycUP1GZfpTzFGeQ==/109951173972598535.jpg?param=200y200",
+          "duration": 253194
+        },
+        {
+          "rank": 34,
+          "id": 3384272710,
+          "name": "i will feel alive",
+          "artists": "Nato Kitch",
+          "album": "i will feel alive",
+          "cover": "http://p3.music.126.net/L84SvNZTjjXFxpW3fBWiSw==/109951173252826275.jpg?param=200y200",
+          "duration": 108435
+        },
+        {
+          "rank": 35,
+          "id": 234014,
+          "name": "写不完的温柔",
+          "artists": "G.E.M.邓紫棋",
+          "album": "18 Plus",
+          "cover": "http://p4.music.126.net/Ucjk_bkpGOHX1lYnezd4qw==/109951172128640538.jpg?param=200y200",
+          "duration": 238880
+        },
+        {
+          "rank": 36,
+          "id": 3431687338,
+          "name": "拧巴式恋爱",
+          "artists": "肖白_",
+          "album": "拧巴式恋爱",
+          "cover": "http://p4.music.126.net/mMCZviI45pEZs8WT3NQQeg==/109951173887316163.jpg?param=200y200",
+          "duration": 191750
+        },
+        {
+          "rank": 37,
+          "id": 3432216398,
+          "name": "STILL ON",
+          "artists": "LWSIC",
+          "album": "关不掉",
+          "cover": "http://p3.music.126.net/VZ-hK3qzHR89irqnqePV9g==/109951173893200738.jpg?param=200y200",
+          "duration": 227136
+        },
+        {
+          "rank": 38,
+          "id": 3425479912,
+          "name": "不能成情人",
+          "artists": "丁家怡",
+          "album": "不能成情人",
+          "cover": "http://p4.music.126.net/mSSHTvSv1bzh7bupOVOj9Q==/109951173818593723.jpg?param=200y200",
+          "duration": 194040
+        },
+        {
+          "rank": 39,
+          "id": 3430271737,
+          "name": "夜间飞行",
+          "artists": "80se",
+          "album": "ihatesingingluv3songs<",
+          "cover": "http://p3.music.126.net/J0I0jlaOxr9dn3OAeboTmQ==/109951173873888933.jpg?param=200y200",
+          "duration": 216000
+        },
+        {
+          "rank": 40,
+          "id": 3441912058,
+          "name": "照相机",
+          "artists": "奇玛奇muuuch",
+          "album": "照相机(DJ/Chord)",
+          "cover": "http://p3.music.126.net/k0wOF1SA4Uc3XjF4OUHgVw==/109951173630567165.jpg?param=200y200",
+          "duration": 121930
+        },
+        {
+          "rank": 41,
+          "id": 445867232,
+          "name": "hate u love u",
+          "artists": "Olivia O'Brien",
+          "album": "hate u love u",
+          "cover": "http://p3.music.126.net/S37lxHtHnv8WTfjFqA9hbw==/109951166629716028.jpg?param=200y200",
+          "duration": 175466
+        },
+        {
+          "rank": 42,
+          "id": 3420692946,
+          "name": "不死鸟 (Live)",
+          "artists": "霍尊",
+          "album": "不死鸟 (Live)",
+          "cover": "http://p4.music.126.net/VcUkEOhxGZsFL8o7Pke-Hg==/109951173744999366.jpg?param=200y200",
+          "duration": 265730
+        },
+        {
+          "rank": 43,
+          "id": 3440889160,
+          "name": "辩白",
+          "artists": "贺仙人",
+          "album": "逃离地球",
+          "cover": "http://p4.music.126.net/tTi4e_bRJonuIr-EK11x7A==/109951173998366786.jpg?param=200y200",
+          "duration": 120000
+        },
+        {
+          "rank": 44,
+          "id": 3437797626,
+          "name": "MONTAGEM SIN NADA",
+          "artists": "Kyrex / Trispect",
+          "album": "MONTAGEM SIN NADA",
+          "cover": "http://p3.music.126.net/GKQW8MledCvjsY4B83npvA==/109951173957973659.jpg?param=200y200",
+          "duration": 101230
+        },
+        {
+          "rank": 45,
+          "id": 114691,
+          "name": "不是对手",
+          "artists": "李圣杰",
+          "album": "绝对痴心.手放开",
+          "cover": "http://p4.music.126.net/YKh3UA3pEd4r5V6n8immXQ==/109951170915074096.jpg?param=200y200",
+          "duration": 278685
+        },
+        {
+          "rank": 46,
+          "id": 3403920987,
+          "name": "Tomorrow Tonight",
+          "artists": "Chris James",
+          "album": "Tomorrow Tonight",
+          "cover": "http://p3.music.126.net/3TwzNyt0HqYW0gwwg52NBg==/109951173529786315.jpg?param=200y200",
+          "duration": 145333
+        },
+        {
+          "rank": 47,
+          "id": 3445525046,
+          "name": "直至矛盾瓦解",
+          "artists": "Supper Moment",
+          "album": "直至矛盾瓦解",
+          "cover": "http://p3.music.126.net/hPDbw_7QPWXqM9SchOl2qg==/109951174102837326.jpg?param=200y200",
+          "duration": 255000
+        },
+        {
+          "rank": 48,
+          "id": 3440639408,
+          "name": "反季节眼泪",
+          "artists": "moli",
+          "album": "反季节眼泪",
+          "cover": "http://p3.music.126.net/HLXWQGGQR-BVM06hxzr90w==/109951173992916103.jpg?param=200y200",
+          "duration": 127239
+        },
+        {
+          "rank": 49,
+          "id": 3429102380,
+          "name": "如果某天有人读懂我的安静",
+          "artists": "陆雨萱 (贝儿)",
+          "album": "如果某天有人读懂我的安静",
+          "cover": "http://p4.music.126.net/aWJtN3T85u6LxebZqEHkcA==/109951173874223847.jpg?param=200y200",
+          "duration": 185538
+        },
+        {
+          "rank": 50,
+          "id": 3434661034,
+          "name": "杀破狼",
+          "artists": "哥哥妹妹",
+          "album": "杀破狼 (2026)",
+          "cover": "http://p4.music.126.net/VQfq-DY-CV9lm3KjNR3pSA==/109951173918845174.jpg?param=200y200",
+          "duration": 196400
+        }
+      ]
+    },
+    "new": {
+      "key": "new",
+      "name": "新歌榜",
+      "id": 3779629,
+      "tracks": [
+        {
+          "rank": 1,
+          "id": 3436855494,
+          "name": "自由的你",
+          "artists": "G.E.M.邓紫棋",
+          "album": "自由的你",
+          "cover": "http://p3.music.126.net/G4Vtk4Je9Sj8zB4KGlxprw==/109951174017350276.jpg?param=200y200",
+          "duration": 296900
+        },
+        {
+          "rank": 2,
+          "id": 3440961675,
+          "name": "睡前别想太多",
+          "artists": "李雨霏_晚饭",
+          "album": "睡前别想太多",
+          "cover": "http://p4.music.126.net/CdAZ76__lHkE_HcjXgR_4w==/109951173999807018.jpg?param=200y200",
+          "duration": 210079
+        },
+        {
+          "rank": 3,
+          "id": 3434747816,
+          "name": "牵我的手好吗",
+          "artists": "吴琳珂Moske",
+          "album": "吴琳珂",
+          "cover": "http://p4.music.126.net/nmaLZTVSB92Ggqhl9zhB6g==/109951173919639815.jpg?param=200y200",
+          "duration": 243258
+        },
+        {
+          "rank": 4,
+          "id": 3426600808,
+          "name": "失物招领",
+          "artists": "刘学义",
+          "album": "失物招领",
+          "cover": "http://p4.music.126.net/5-azEx34N7OnRyB3VBWo6g==/109951174017706467.jpg?param=200y200",
+          "duration": 268416
+        },
+        {
+          "rank": 5,
+          "id": 3439425218,
+          "name": "浅粉红 baby pink",
+          "artists": "Gareth.T",
+          "album": "浅粉红",
+          "cover": "http://p4.music.126.net/1jbJJC3zsolEA3Y7DgzJjg==/109951173977460551.jpg?param=200y200",
+          "duration": 232319
+        },
+        {
+          "rank": 6,
+          "id": 3440655477,
+          "name": "月声尽，心灯明",
+          "artists": "鸣潮先约电台 / jixwang / Cassie Wei",
+          "album": "梦枢心相由心生",
+          "cover": "http://p4.music.126.net/f_QRzKF5p9ulRJ5q2M6R6A==/109951173993049764.jpg?param=200y200",
+          "duration": 254594
+        },
+        {
+          "rank": 7,
+          "id": 3441892927,
+          "name": "雪少年(山外山天外天)",
+          "artists": "SUS.",
+          "album": "雪少年(山外山天外天)",
+          "cover": "http://p4.music.126.net/A5cPihRhKJxBpuJAF9AELQ==/109951174017681740.jpg?param=200y200",
+          "duration": 229973
+        },
+        {
+          "rank": 8,
+          "id": 3439425217,
+          "name": "浅粉红 pale pink",
+          "artists": "Gareth.T",
+          "album": "浅粉红",
+          "cover": "http://p4.music.126.net/1jbJJC3zsolEA3Y7DgzJjg==/109951173977460551.jpg?param=200y200",
+          "duration": 201816
+        },
+        {
+          "rank": 9,
+          "id": 3444858995,
+          "name": "Know My Name",
+          "artists": "True Damage / 英雄联盟 / Sofía Reyes / VIC MENSA / Coco Jones / 田小娟 / i-dle",
+          "album": "Know My Name",
+          "cover": "http://p3.music.126.net/w-ckZDbzuuaq8_xX67bVtA==/109951174067773064.jpg?param=200y200",
+          "duration": 212236
+        },
+        {
+          "rank": 10,
+          "id": 3446271874,
+          "name": "人生剩下的难题",
+          "artists": "廖俊涛",
+          "album": "俊涛的猜想",
+          "cover": "http://p3.music.126.net/keJU1Z7lQPUvJnaEYpJI0g==/109951174086638117.jpg?param=200y200",
+          "duration": 379545
+        },
+        {
+          "rank": 11,
+          "id": 3438968283,
+          "name": "花骨朵",
+          "artists": "洛天依Official / 亞細亞曠世奇才",
+          "album": "花骨朵",
+          "cover": "http://p4.music.126.net/_nQm6G_r2169K752DvbwoA==/109951173972266080.jpg?param=200y200",
+          "duration": 167083
+        },
+        {
+          "rank": 12,
+          "id": 3437356861,
+          "name": "If The Sun Burns Out Tonight (feat. Oli Sykes & Courtney LaPlante)",
+          "artists": "VALORANT / Grabbitz / Oli Sykes / Courtney LaPlante",
+          "album": "If The Sun Burns Out Tonight (feat. Oli Sykes & Courtney LaPlante)",
+          "cover": "http://p3.music.126.net/g0lI2CqLFe9xWyWJc51pFA==/109951173952172031.jpg?param=200y200",
+          "duration": 226403
+        },
+        {
+          "rank": 13,
+          "id": 3434710986,
+          "name": "Thank You",
+          "artists": "王嘉尔",
+          "album": "Thank You",
+          "cover": "http://p3.music.126.net/hw9fZ1j1dWFrdXNAZEr3SA==/109951173919326664.jpg?param=200y200",
+          "duration": 224173
+        },
+        {
+          "rank": 14,
+          "id": 3434661034,
+          "name": "杀破狼",
+          "artists": "哥哥妹妹",
+          "album": "杀破狼 (2026)",
+          "cover": "http://p3.music.126.net/VQfq-DY-CV9lm3KjNR3pSA==/109951173918845174.jpg?param=200y200",
+          "duration": 196400
+        },
+        {
+          "rank": 15,
+          "id": 3443989683,
+          "name": "Grey trails live on",
+          "artists": "Dirk / Echo",
+          "album": "Grey trails live on",
+          "cover": "http://p4.music.126.net/LVWbEEo_AfoOmDFJGkkhog==/109951174052257985.jpg?param=200y200",
+          "duration": 272597
+        },
+        {
+          "rank": 16,
+          "id": 3442131349,
+          "name": "Rendezvous",
+          "artists": "Mili",
+          "album": "Rendezvous",
+          "cover": "http://p3.music.126.net/7kaZumjeo8LjULsgyb0UJw==/109951174021104763.jpg?param=200y200",
+          "duration": 208533
+        },
+        {
+          "rank": 17,
+          "id": 3437428784,
+          "name": "Elements",
+          "artists": "John Michael Howell / ZVC",
+          "album": "Elements",
+          "cover": "http://p4.music.126.net/JpyFFUYqrVXfWMwTBMSuPA==/109951173976310221.jpg?param=200y200",
+          "duration": 160816
+        },
+        {
+          "rank": 18,
+          "id": 3444775814,
+          "name": "kiss kiss（拥吻）",
+          "artists": "三棱镜",
+          "album": "kiss kiss（拥吻）",
+          "cover": "http://p4.music.126.net/tkYDrVUgeQjVV6Ct7zxV8g==/109951174066408927.jpg?param=200y200",
+          "duration": 125898
+        },
+        {
+          "rank": 19,
+          "id": 3445490637,
+          "name": "思念像一场重感冒",
+          "artists": "余佳运",
+          "album": "思念像一场重感冒·开始奏乐开始舞",
+          "cover": "http://p3.music.126.net/Jv36uPpNVv6mo1UXqlUUXQ==/109951174076158806.jpg?param=200y200",
+          "duration": 157500
+        },
+        {
+          "rank": 20,
+          "id": 3436976392,
+          "name": "王子系变装",
+          "artists": "圈圈菌",
+          "album": "王子系变装",
+          "cover": "http://p4.music.126.net/jMu--9nIik9CcijiWEKXgA==/109951173947903976.jpg?param=200y200",
+          "duration": 92560
+        },
+        {
+          "rank": 21,
+          "id": 3434764803,
+          "name": "比恋人多点恨",
+          "artists": "任然",
+          "album": "比恋人多点恨",
+          "cover": "http://p3.music.126.net/reAGhBzZuuSgX-hwpH6OwA==/109951173919791263.jpg?param=200y200",
+          "duration": 234098
+        },
+        {
+          "rank": 22,
+          "id": 3440491079,
+          "name": "月亮之下",
+          "artists": "黄龄 / 邓典",
+          "album": "月亮之下",
+          "cover": "http://p3.music.126.net/ZqGdzPvefxAeWLHEgd_rug==/109951173991178309.jpg?param=200y200",
+          "duration": 168021
+        },
+        {
+          "rank": 23,
+          "id": 3439412532,
+          "name": "一样的我们",
+          "artists": "颜人中",
+          "album": "一样的我们",
+          "cover": "http://p4.music.126.net/evIZYwTr-99_eMAqcS5sTw==/109951173977316636.jpg?param=200y200",
+          "duration": 226268
+        },
+        {
+          "rank": 24,
+          "id": 3440528000,
+          "name": "异想天开",
+          "artists": "肖战",
+          "album": "异想天开",
+          "cover": "http://p4.music.126.net/EKF1_0K4a49EYk3bjyf2TQ==/109951174018605045.jpg?param=200y200",
+          "duration": 197343
+        },
+        {
+          "rank": 25,
+          "id": 3445653421,
+          "name": "FF",
+          "artists": "Troye Sivan",
+          "album": "She’s the Best",
+          "cover": "http://p3.music.126.net/JZdfAxMsumhcr53eQGvPbQ==/109951174081257182.jpg?param=200y200",
+          "duration": 262896
+        },
+        {
+          "rank": 26,
+          "id": 3436887140,
+          "name": "底色 (难道我又多想了)",
+          "artists": "350Ton-Xll！",
+          "album": "底色 (难道我又多想了)",
+          "cover": "http://p4.music.126.net/W0j1Z-UZPv_g1eqqxYDyNg==/109951173946982670.jpg?param=200y200",
+          "duration": 187868
+        },
+        {
+          "rank": 27,
+          "id": 3440858634,
+          "name": "Patient Zero",
+          "artists": "Taylor Swift",
+          "album": "The Life of a Showgirl: The Encore",
+          "cover": "http://p4.music.126.net/-5Zrxxe-acnG3Hph1bcLMQ==/109951174017690356.jpg?param=200y200",
+          "duration": 225868
+        },
+        {
+          "rank": 28,
+          "id": 3440172856,
+          "name": "机会到了我们出",
+          "artists": "卡力老虎 / 周乘羽",
+          "album": "商业与玩法",
+          "cover": "http://p4.music.126.net/rt6_mInoqx0iqImk9qng2w==/109951173986994634.jpg?param=200y200",
+          "duration": 206415
+        },
+        {
+          "rank": 29,
+          "id": 3445943822,
+          "name": "奔向刹那之后（刹那のその先へ）",
+          "artists": "R!N/Gemie / 网易阴阳师手游",
+          "album": "奔向刹那之后（刹那のその先へ）",
+          "cover": "http://p4.music.126.net/eHXWF4eAUii1bxAfYL35GA==/109951174082495840.jpg?param=200y200",
+          "duration": 210285
+        },
+        {
+          "rank": 30,
+          "id": 3442626858,
+          "name": "Frost Oath(NADA NEAT)",
+          "artists": "Sin Wecokat / Yilu7i",
+          "album": "Frost Oath",
+          "cover": "http://p4.music.126.net/CFQ2nXqviA_RrSU7YbaNCA==/109951174027451267.jpg?param=200y200",
+          "duration": 103902
+        },
+        {
+          "rank": 31,
+          "id": 3440528018,
+          "name": "Allez, aimez!",
+          "artists": "肖战",
+          "album": "异想天开",
+          "cover": "http://p4.music.126.net/EKF1_0K4a49EYk3bjyf2TQ==/109951174018605045.jpg?param=200y200",
+          "duration": 202000
+        },
+        {
+          "rank": 32,
+          "id": 3445947349,
+          "name": "最难得",
+          "artists": "单依纯",
+          "album": "最难得",
+          "cover": "http://p3.music.126.net/In59tmNk1xSTHxQyw7Vhmg==/109951174082547347.jpg?param=200y200",
+          "duration": 245263
+        },
+        {
+          "rank": 33,
+          "id": 3439387316,
+          "name": "G.T.R.",
+          "artists": "FiRe范艾迩 / TizzyT / GALI / Capper / 黄之仪Kyra Zilver",
+          "album": "红秩序 RED ORDER",
+          "cover": "http://p3.music.126.net/in1TteIpMgfpte7zw2Rr9w==/109951173961509176.jpg?param=200y200",
+          "duration": 236129
+        },
+        {
+          "rank": 34,
+          "id": 3444720987,
+          "name": "Follow Me",
+          "artists": "Alec Benjamin",
+          "album": "Follow Me",
+          "cover": "http://p4.music.126.net/f5OvcKK7e44LpJ7ySBui0Q==/109951174065677398.jpg?param=200y200",
+          "duration": 171352
+        },
+        {
+          "rank": 35,
+          "id": 3436364770,
+          "name": "秋天的海",
+          "artists": "周传雄",
+          "album": "秋天的海",
+          "cover": "http://p3.music.126.net/R5l12gWhV4rdeMIV9Xfq3Q==/109951173942013924.jpg?param=200y200",
+          "duration": 157428
+        },
+        {
+          "rank": 36,
+          "id": 3439808319,
+          "name": "好坏",
+          "artists": "Zkaaai / 哈利白特",
+          "album": "好坏",
+          "cover": "http://p3.music.126.net/-6NeNtqXVUuvEI93Dw8sfQ==/109951173982289999.jpg?param=200y200",
+          "duration": 228239
+        },
+        {
+          "rank": 37,
+          "id": 3440529001,
+          "name": "遥远的不是爱",
+          "artists": "肖战",
+          "album": "异想天开",
+          "cover": "http://p3.music.126.net/EKF1_0K4a49EYk3bjyf2TQ==/109951174018605045.jpg?param=200y200",
+          "duration": 182857
+        },
+        {
+          "rank": 38,
+          "id": 3440639408,
+          "name": "反季节眼泪",
+          "artists": "moli",
+          "album": "反季节眼泪",
+          "cover": "http://p4.music.126.net/HLXWQGGQR-BVM06hxzr90w==/109951173992916103.jpg?param=200y200",
+          "duration": 127239
+        },
+        {
+          "rank": 39,
+          "id": 3436826990,
+          "name": "我怕会想你",
+          "artists": "陈小满阿",
+          "album": "我怕会想你",
+          "cover": "http://p3.music.126.net/kCHmQn1zPH-6KXAW-6KoTQ==/109951173945983802.jpg?param=200y200",
+          "duration": 228000
+        },
+        {
+          "rank": 40,
+          "id": 3440528006,
+          "name": "不合时宜",
+          "artists": "肖战",
+          "album": "异想天开",
+          "cover": "http://p3.music.126.net/EKF1_0K4a49EYk3bjyf2TQ==/109951174018605045.jpg?param=200y200",
+          "duration": 225899
+        },
+        {
+          "rank": 41,
+          "id": 3436711168,
+          "name": "Furious(GHETTO HOUSE)",
+          "artists": "BOY / chao",
+          "album": "Furious(GHETTO HOUSE)",
+          "cover": "http://p4.music.126.net/bSeCUwi3--DsQsY5D87H-g==/109951173945547968.jpg?param=200y200",
+          "duration": 138711
+        },
+        {
+          "rank": 42,
+          "id": 3445595679,
+          "name": "有你爱就明媚",
+          "artists": "Fozik佛子克",
+          "album": "有你爱就明媚",
+          "cover": "http://p3.music.126.net/18gUQgUlqzuLfLZw8qPMmA==/109951174077558701.jpg?param=200y200",
+          "duration": 159560
+        },
+        {
+          "rank": 43,
+          "id": 3435715289,
+          "name": "He's Not Me",
+          "artists": "Anson Seabra",
+          "album": "He's Not Me",
+          "cover": "http://p3.music.126.net/T-e5_YFFSYal-cLJX2e6qg==/109951173932709986.jpg?param=200y200",
+          "duration": 186928
+        },
+        {
+          "rank": 44,
+          "id": 3439379059,
+          "name": "清醒",
+          "artists": "step.jad依加",
+          "album": "清醒",
+          "cover": "http://p4.music.126.net/x9Dhc1Gfyni06fkSIT4gYA==/109951173977023556.jpg?param=200y200",
+          "duration": 275301
+        },
+        {
+          "rank": 45,
+          "id": 3440639494,
+          "name": "Montagem Nada Tropica",
+          "artists": "灰蒙蒙 / VOLT",
+          "album": "Montagem Nada Tropica",
+          "cover": "http://p3.music.126.net/1jLPhqNDS6m0rGleQPwCgQ==/109951173993011936.jpg?param=200y200",
+          "duration": 121801
+        },
+        {
+          "rank": 46,
+          "id": 3437797626,
+          "name": "MONTAGEM SIN NADA",
+          "artists": "Kyrex / Trispect",
+          "album": "MONTAGEM SIN NADA",
+          "cover": "http://p3.music.126.net/GKQW8MledCvjsY4B83npvA==/109951173957973659.jpg?param=200y200",
+          "duration": 101230
+        },
+        {
+          "rank": 47,
+          "id": 3439375418,
+          "name": "一眼",
+          "artists": "任然",
+          "album": "一眼",
+          "cover": "http://p4.music.126.net/5ARGJNAGJ8t0BL7CRGEHEQ==/109951173976970179.jpg?param=200y200",
+          "duration": 241633
+        },
+        {
+          "rank": 48,
+          "id": 3440552022,
+          "name": "Bad Girl",
+          "artists": "张艺兴",
+          "album": "Bad Girl",
+          "cover": "http://p4.music.126.net/5maGWOdf2tW5gqjZV5n96Q==/109951173991864159.jpg?param=200y200",
+          "duration": 188117
+        },
+        {
+          "rank": 49,
+          "id": 3403920987,
+          "name": "Tomorrow Tonight",
+          "artists": "Chris James",
+          "album": "Tomorrow Tonight",
+          "cover": "http://p3.music.126.net/3TwzNyt0HqYW0gwwg52NBg==/109951173529786315.jpg?param=200y200",
+          "duration": 145333
+        },
+        {
+          "rank": 50,
+          "id": 3437177548,
+          "name": "沧海一粟",
+          "artists": "刘森",
+          "album": "峨眉",
+          "cover": "http://p3.music.126.net/w8btVcZVNspCy-75ygWXOg==/109951172516621501.jpg?param=200y200",
+          "duration": 240404
+        }
+      ]
+    }
+  }
+}
