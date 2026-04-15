@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PWA 测试工具</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h2 {
+            margin-top: 0;
+            color: #333;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .status.warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 10px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button.danger {
+            background: #dc3545;
+        }
+        button.danger:hover {
+            background: #c82333;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 13px;
+        }
+        .log {
+            max-height: 300px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .log-entry {
+            margin: 4px 0;
+            padding: 4px;
+            border-left: 3px solid #ccc;
+            padding-left: 8px;
+        }
+        .log-entry.success { border-color: #28a745; }
+        .log-entry.error { border-color: #dc3545; }
+        .log-entry.info { border-color: #17a2b8; }
+    </style>
+</head>
+<body>
+    <h1>🔧 PWA 离线缓存测试工具</h1>
+
+    <div class="card">
+        <h2>Service Worker 状态</h2>
+        <p>注册状态: <span id="sw-status" class="status warning">检查中...</span></p>
+        <p>Scope: <span id="sw-scope">-</span></p>
+        <p>State: <span id="sw-state">-</span></p>
+        <button onclick="checkServiceWorker()">刷新状态</button>
+        <button onclick="unregisterSW()" class="danger">注销 SW</button>
+    </div>
+
+    <div class="card">
+        <h2>网络状态</h2>
+        <p>当前状态: <span id="network-status" class="status">-</span></p>
+        <p>在线事件: <span id="online-count">0</span> 次</p>
+        <p>离线事件: <span id="offline-count">0</span> 次</p>
+    </div>
+
+    <div class="card">
+        <h2>缓存检查</h2>
+        <button onclick="checkCaches()">检查缓存</button>
+        <button onclick="clearCaches()" class="danger">清除所有缓存</button>
+        <pre id="cache-info">点击"检查缓存"查看详情</pre>
+    </div>
+
+    <div class="card">
+        <h2>IndexedDB 检查</h2>
+        <button onclick="checkIndexedDB()">检查 IndexedDB</button>
+        <button onclick="clearIndexedDB()" class="danger">清除 IndexedDB</button>
+        <pre id="idb-info">点击"检查 IndexedDB"查看详情</pre>
+    </div>
+
+    <div class="card">
+        <h2>操作日志</h2>
+        <button onclick="clearLog()">清除日志</button>
+        <div id="log" class="log"></div>
+    </div>
+
+    <script>
+        let onlineCount = 0;
+        let offlineCount = 0;
+
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logDiv.insertBefore(entry, logDiv.firstChild);
+        }
+
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+
+        async function checkServiceWorker() {
+            log('检查 Service Worker 状态...', 'info');
+            
+            if (!('serviceWorker' in navigator)) {
+                document.getElementById('sw-status').textContent = '不支持';
+                document.getElementById('sw-status').className = 'status error';
+                log('浏览器不支持 Service Worker', 'error');
+                return;
+            }
+
+            try {
+                const registration = await navigator.serviceWorker.getRegistration();
+                
+                if (registration) {
+                    document.getElementById('sw-status').textContent = '已注册';
+                    document.getElementById('sw-status').className = 'status success';
+                    document.getElementById('sw-scope').textContent = registration.scope;
+                    
+                    const sw = registration.active || registration.installing || registration.waiting;
+                    if (sw) {
+                        document.getElementById('sw-state').textContent = sw.state;
+                        log(`Service Worker 状态: ${sw.state}`, 'success');
+                    }
+                } else {
+                    document.getElementById('sw-status').textContent = '未注册';
+                    document.getElementById('sw-status').className = 'status error';
+                    log('Service Worker 未注册', 'error');
+                }
+            } catch (error) {
+                log(`检查失败: ${error.message}`, 'error');
+            }
+        }
+
+        async function unregisterSW() {
+            if (!confirm('确定要注销 Service Worker 吗？')) return;
+            
+            try {
+                const registration = await navigator.serviceWorker.getRegistration();
+                if (registration) {
+                    await registration.unregister();
+                    log('Service Worker 已注销', 'success');
+                    checkServiceWorker();
+                }
+            } catch (error) {
+                log(`注销失败: ${error.message}`, 'error');
+            }
+        }
+
+        async function checkCaches() {
+            log('检查缓存...', 'info');
+            
+            try {
+                const cacheNames = await caches.keys();
+                let info = `找到 ${cacheNames.length} 个缓存:\n\n`;
+                
+                for (const name of cacheNames) {
+                    const cache = await caches.open(name);
+                    const keys = await cache.keys();
+                    info += `📦 ${name}\n`;
+                    info += `   条目数: ${keys.length}\n`;
+                    if (keys.length > 0 && keys.length <= 10) {
+                        keys.forEach(req => {
+                            info += `   - ${req.url}\n`;
+                        });
+                    }
+                    info += '\n';
+                }
+                
+                document.getElementById('cache-info').textContent = info || '没有缓存';
+                log(`找到 ${cacheNames.length} 个缓存`, 'success');
+            } catch (error) {
+                log(`检查缓存失败: ${error.message}`, 'error');
+            }
+        }
+
+        async function clearCaches() {
+            if (!confirm('确定要清除所有缓存吗？')) return;
+            
+            try {
+                const cacheNames = await caches.keys();
+                await Promise.all(cacheNames.map(name => caches.delete(name)));
+                log(`已清除 ${cacheNames.length} 个缓存`, 'success');
+                checkCaches();
+            } catch (error) {
+                log(`清除缓存失败: ${error.message}`, 'error');
+            }
+        }
+
+        async function checkIndexedDB() {
+            log('检查 IndexedDB...', 'info');
+            
+            try {
+                const databases = await indexedDB.databases();
+                let info = `找到 ${databases.length} 个数据库:\n\n`;
+                
+                for (const db of databases) {
+                    info += `💾 ${db.name} (版本 ${db.version})\n`;
+                    
+                    // 尝试打开数据库获取详细信息
+                    const request = indexedDB.open(db.name);
+                    await new Promise((resolve, reject) => {
+                        request.onsuccess = () => {
+                            const database = request.result;
+                            info += `   对象存储: ${Array.from(database.objectStoreNames).join(', ')}\n`;
+                            database.close();
+                            resolve();
+                        };
+                        request.onerror = reject;
+                    });
+                    info += '\n';
+                }
+                
+                document.getElementById('idb-info').textContent = info || '没有数据库';
+                log(`找到 ${databases.length} 个数据库`, 'success');
+            } catch (error) {
+                log(`检查 IndexedDB 失败: ${error.message}`, 'error');
+            }
+        }
+
+        async function clearIndexedDB() {
+            if (!confirm('确定要清除所有 IndexedDB 数据吗？')) return;
+            
+            try {
+                const databases = await indexedDB.databases();
+                for (const db of databases) {
+                    indexedDB.deleteDatabase(db.name);
+                }
+                log(`已清除 ${databases.length} 个数据库`, 'success');
+                setTimeout(checkIndexedDB, 500);
+            } catch (error) {
+                log(`清除 IndexedDB 失败: ${error.message}`, 'error');
+            }
+        }
+
+        function updateNetworkStatus() {
+            const status = navigator.onLine ? '在线' : '离线';
+            const className = navigator.onLine ? 'status success' : 'status error';
+            document.getElementById('network-status').textContent = status;
+            document.getElementById('network-status').className = className;
+        }
+
+        // 初始化
+        window.addEventListener('load', () => {
+            checkServiceWorker();
+            updateNetworkStatus();
+            log('测试工具已加载', 'success');
+        });
+
+        // 监听网络状态
+        window.addEventListener('online', () => {
+            onlineCount++;
+            document.getElementById('online-count').textContent = onlineCount;
+            updateNetworkStatus();
+            log('网络已连接', 'success');
+        });
+
+        window.addEventListener('offline', () => {
+            offlineCount++;
+            document.getElementById('offline-count').textContent = offlineCount;
+            updateNetworkStatus();
+            log('网络已断开', 'error');
+        });
+    </script>
+</body>
+</html>

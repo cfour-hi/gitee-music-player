@@ -9,19 +9,16 @@ export default defineConfig({
   plugins: [
     vue(),
     VitePWA({
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.js',
       registerType: 'autoUpdate',
       scope: BASE,
-      workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,ico,webmanifest}'],
-        navigateFallback: 'index.html',
-        navigateFallbackDenylist: [/^https:\/\/gitee\.com/],
-        additionalManifestEntries: [
-          { url: 'jsmediatags.min.js', revision: null },
-        ],
-      },
+      injectRegister: 'auto',
       manifest: {
         name: 'Music Player',
         short_name: 'Music',
+        description: 'A PWA music player with offline support',
         start_url: BASE,
         scope: BASE,
         display: 'standalone',
@@ -29,11 +26,19 @@ export default defineConfig({
         background_color: '#1e201e',
         icons: [
           {
-            src: 'favicon.svg',
+            src: `${BASE}favicon.svg`,
             sizes: 'any',
             type: 'image/svg+xml',
+            purpose: 'any maskable',
           },
         ],
+      },
+      injectManifest: {
+        globPatterns: ['**/*.{js,css,html,svg,ico,webmanifest}'],
+        globIgnores: ['**/node_modules/**/*'],
+      },
+      devOptions: {
+        enabled: false,
       },
     }),
   ],
