@@ -355,6 +355,7 @@ header button .svg-icon {
   border: none;
   border-radius: 0.04rem;
   color: #1e201e;
+  font-size: 16px;
 }
 
 .search-close {
