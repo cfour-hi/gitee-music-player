@@ -128,34 +128,35 @@ async function resolveSongsFromLocal() {
   songList.value = songs;
 }
 
+// 更新媒体会话元数据
+function updateMediaSessionMetadata() {
+  if (!navigator.mediaSession) return;
+  if (!songActive.value || !songActive.value._tag) return;
+
+  const metadata = new MediaMetadata({
+    title: songActive.value._tag.tags.title,
+    artist: songActive.value._tag.tags.artist,
+    album: songActive.value._tag.tags.album || '未知专辑',
+    artwork: songActive.value._cover ? [
+      {
+        src: songActive.value._cover,
+        sizes: '512x512',
+        type: songActive.value._tag.tags.picture?.format || 'image/jpeg',
+      },
+    ] : [],
+  });
+  navigator.mediaSession.metadata = metadata;
+}
+
 // 注册媒体会话事件处理器，用于集成浏览器媒体控制（如系统媒体快捷键、通知中心播放控件等）
 function registerMediaEvents() {
   // 检测浏览器是否支持 MediaSession API，不支持则直接返回
   if (!navigator.mediaSession) return;
 
-  // 更新媒体会话元数据
-  function updateMediaSessionMetadata() {
-    if (!songActive.value || !songActive.value._tag) return;
-
-    const metadata = new MediaMetadata({
-      title: songActive.value._tag.tags.title,
-      artist: songActive.value._tag.tags.artist,
-      album: songActive.value._tag.tags.album || '未知专辑',
-      artwork: songActive.value._cover ? [
-        {
-          src: songActive.value._cover,
-          sizes: '512x512',
-          type: songActive.value._tag.tags.picture?.format || 'image/jpeg',
-        },
-      ] : [],
-    });
-    navigator.mediaSession.metadata = metadata;
-  }
-
   // 设置 "播放" 动作处理器
   navigator.mediaSession.setActionHandler('play', () => {
-    // 如果已有活跃歌曲且处于播放状态，恢复播放；否则触发随机播放
-    if (songActiveIndex.value >= 0 && audioPlaying.value) {
+    // 如果已有活跃歌曲，恢复播放；否则触发随机播放
+    if (songActiveIndex.value >= 0) {
       clickResume();
     } else {
       clickPlayByRandom();
@@ -260,6 +261,8 @@ async function clickSong(index) {
 async function clickResume() {
   await audioRef.value.play();
   audioPlaying.value = true;
+  // 更新媒体会话元数据
+  updateMediaSessionMetadata();
   // 请求动画帧更新音频进度条（启动实时进度更新循环）
   window.requestAnimationFrame(toAudioProgrssFrame);
 }
