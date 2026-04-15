@@ -2,9 +2,10 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { VitePWA } from 'vite-plugin-pwa'
 
-const BASE = '/gitee-music-player/'
+const BASE = process.env.NODE_ENV === 'production' ? '/gitee-music-player/' : '/'
 
 export default defineConfig({
+  base: BASE,
   plugins: [
     vue(),
     VitePWA({
@@ -12,9 +13,7 @@ export default defineConfig({
       scope: BASE,
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,ico,webmanifest}'],
-        // navigateFallback 使用相对于 scope 的路径
         navigateFallback: 'index.html',
-        // 排除跨域请求（Gitee API）
         navigateFallbackDenylist: [/^https:\/\/gitee\.com/],
         additionalManifestEntries: [
           { url: 'jsmediatags.min.js', revision: null },
