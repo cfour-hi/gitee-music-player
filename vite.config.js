@@ -9,12 +9,14 @@ export default defineConfig({
     vue(),
     VitePWA({
       registerType: 'autoUpdate',
-      // 缓存 App Shell 所需的静态资源
       workbox: {
+        // 缓存所有构建产物及 public 下的静态文件
         globPatterns: ['**/*.{js,css,html,svg,png,ico}'],
-        // jsmediatags 体积较大，单独列出确保被缓存
+        // 断网刷新时用缓存的 index.html 响应导航请求
+        navigateFallback: '/gitee-music-player/index.html',
+        navigateFallbackDenylist: [/^\/api\//],
         additionalManifestEntries: [
-          { url: 'jsmediatags.min.js', revision: null },
+          { url: '/gitee-music-player/jsmediatags.min.js', revision: null },
         ],
       },
       manifest: {
