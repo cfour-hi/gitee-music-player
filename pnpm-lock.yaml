@@ -2009,7 +2009,7 @@ snapshots:
 
   '@babel/helper-optimise-call-expression@7.27.1':
     dependencies:
-      '@babel/types': 7.29.0
+      '@babel/types': 7.27.1
 
   '@babel/helper-plugin-utils@7.28.6': {}
 
@@ -2034,7 +2034,7 @@ snapshots:
   '@babel/helper-skip-transparent-expression-wrappers@7.27.1':
     dependencies:
       '@babel/traverse': 7.29.0
-      '@babel/types': 7.29.0
+      '@babel/types': 7.27.1
     transitivePeerDependencies:
       - supports-color
 
@@ -2535,7 +2535,7 @@ snapshots:
     dependencies:
       '@babel/core': 7.29.0
       '@babel/helper-plugin-utils': 7.28.6
-      '@babel/types': 7.29.0
+      '@babel/types': 7.27.1
       esutils: 2.0.3
 
   '@babel/runtime@7.29.2': {}
