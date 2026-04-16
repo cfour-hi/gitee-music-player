@@ -6,13 +6,15 @@ export default function useMusicSearch(songListSorted) {
   const searchContent = ref('');
 
   const filteredSongs = computed(() => {
-    const keyword = searchContent.value.trim().toLowerCase();
-    if (!keyword) return songListSorted.value;
+    const kw = searchContent.value.trim().toLowerCase();
+    if (!kw) return songListSorted.value;
+
     return songListSorted.value.filter((song) => {
-      const title = (song._tag?.tags.title || song.path || '').toLowerCase();
-      const artist = (song._tag?.tags.artist || '').toLowerCase();
-      const album = (song._tag?.tags.album || '').toLowerCase();
-      return title.includes(keyword) || artist.includes(keyword) || album.includes(keyword);
+      const songPath = song.path.toLowerCase();
+      const title = (song._tag?.tags.title ?? '').toLowerCase();
+      const artist = (song._tag?.tags.artist ?? '').toLowerCase();
+      const album = (song._tag?.tags.album ?? '').toLowerCase();
+      return title.includes(kw) || songPath.includes(kw) || artist.includes(kw) || album.includes(kw);
     });
   });
 
