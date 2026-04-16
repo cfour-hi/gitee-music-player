@@ -91,11 +91,12 @@ import useSong from './hooks/use-song';
 import useMusicDB from './hooks/use-music-db';
 import useSongParse from './hooks/use-song-parse';
 import useMusicSearch from './hooks/use-music-search';
-import { computed, nextTick, onMounted, ref } from 'vue';
+import { nextTick, onMounted, ref } from 'vue';
+import { isAudio } from './helper'
 
 const ACCESS_TOKEN = import.meta.env.VITE_ACCESS_TOKEN;
 const OWNER = import.meta.env.VITE_OWNER;
-const REPO = import.meta.env.VITE_REPO;
+const REPOS = import.meta.env.VITE_REPOS.split(',');
 const BRANCH = import.meta.env.PROD ? import.meta.env.VITE_BRANCH : 'dev';
 
 const { songLoading, songList, songListSorted, songActiveIndex, songActive } = useSong();
@@ -174,32 +175,36 @@ function registerMediaEvents() {
   updateMediaSessionMetadata();
 }
 
-// 刷新歌曲列表函数：从远程仓库同步最新歌曲数据，更新本地数据库和歌曲列表
+// 刷新歌曲列表函数：从多个远程仓库同步最新歌曲数据，更新本地数据库和歌曲列表
 async function clickRefresh() {
   if (songLoading.value) return;
   songLoading.value = true;
 
-  const res = await fetch(
-    `https://gitee.com/api/v5/repos/${OWNER}/${REPO}/git/trees/${BRANCH}?access_token=${ACCESS_TOKEN}`,
-  );
-  const data = await res.json();
-
-  const AUDIO_EXTS = ['mp3', 'm4a', 'flac', 'ogg', 'wav'];
-  const isAudio = (o) => AUDIO_EXTS.includes(o.path?.split('.').pop()?.toLowerCase());
+  // 从所有仓库获取歌曲列表
+  const allRemoteSongs = (await Promise.all(REPOS.map(async repo => {
+    try {
+      const res = await fetch(`https://gitee.com/api/v5/repos/${OWNER}/${repo}/git/trees/${BRANCH}?access_token=${ACCESS_TOKEN}`);
+      const data = await res.json();
+      return data.tree.filter(isAudio);
+    } catch(err) {
+      console.log(`从仓库"${repo}"获取歌曲列表失败`)
+    }
+    return [];
+  }))).flat();
 
   // 清理本地已删除的歌曲：反向遍历当前歌曲列表（避免删除时索引错乱）
   for (let i = songList.value.length - 1; i >= 0; i -= 1) {
     const song = songList.value[i];
     // 如果远程仓库中不存在当前歌曲（通过 SHA 唯一标识判断），则删除本地数据
-    if (data.tree.find((o) => o.sha === song.sha)) continue;
-
-    await musicDB.delete(song.sha);
-    songList.value.splice(i, 1);
+    if (!allRemoteSongs.find((o) => o.sha === song.sha)) {
+      await musicDB.delete(song.sha);
+      songList.value.splice(i, 1);
+    }
   }
 
   // 筛选远程仓库中的新歌曲：排除已存在于本地列表的歌曲
-  const newSongs = data.tree.filter(
-    (o) => isAudio(o) && !songList.value.find((p) => p.sha === o.sha),
+  const newSongs = allRemoteSongs.filter(
+    (o) => !songList.value.find((p) => p.sha === o.sha),
   );
   // 批量处理新歌曲（每批10首，避免请求过于密集）
   for (let i = 0; i < newSongs.length / 10; i += 1) {
