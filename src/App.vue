@@ -29,10 +29,14 @@
     />
     <svg-icon v-show="searching" name="close" class="search-close" @click="closeSearch"></svg-icon>
   </header>
-  <main class="song-list">
+  <RecycleScroller
+    v-slot="{ item: song }"
+    class="song-list"
+    :items="filteredSongs"
+    :item-size="itemSize"
+    key-field="sha"
+  >
     <div
-      v-for="(song, index) in filteredSongs"
-      :key="song.sha"
       class="song-item"
       :class="{ active: songListSorted.indexOf(song) === songActiveIndex }"
       @click="clickSong(songListSorted.indexOf(song))"
@@ -47,10 +51,10 @@
         </div>
       </div>
     </div>
-    <div v-if="filteredSongs.length === 0 && searchContent" class="search-empty">
-      没有找到「{{ searchContent }}」相关的歌曲
-    </div>
-  </main>
+  </RecycleScroller>
+  <div v-if="filteredSongs.length === 0 && searchContent" class="search-empty">
+    没有找到「{{ searchContent }}」相关的歌曲
+  </div>
   <div class="to-top" @click="clickToTop">
     <svg-icon name="to-top"></svg-icon>
   </div>
@@ -91,6 +95,8 @@ import useSong from './hooks/use-song';
 import useMusicDB from './hooks/use-music-db';
 import useSongParse from './hooks/use-song-parse';
 import useMusicSearch from './hooks/use-music-search';
+import { RecycleScroller } from 'vue-virtual-scroller';
+import 'vue-virtual-scroller/dist/vue-virtual-scroller.css';
 import { nextTick, onMounted, ref } from 'vue';
 import { isAudio } from './helper'
 
@@ -109,6 +115,16 @@ const musicDB = useMusicDB();
 const { searchRef, searching, searchContent, filteredSongs, clickSearch, closeSearch, blurSearchInput } =
   useMusicSearch(songListSorted);
 const { resolveSongData, resolveSongTag, toSongCover } = useSongParse();
+
+// 计算歌曲项的实际高度（px）
+// 歌曲项高度 = 0.2rem(上margin) + 1rem(封面) + 0.2rem(下margin) = 1.4rem
+const itemSize = ref(140);
+function updateItemSize() {
+  const fontSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
+  itemSize.value = 1.4 * fontSize; // 1.4rem 转换为 px
+}
+updateItemSize();
+window.addEventListener('resize', updateItemSize);
 
 onMounted(async () => {
   songLoading.value = true;
@@ -379,6 +395,7 @@ header button .svg-icon {
 
 .song-list {
   margin-bottom: 1.4rem;
+  height: calc(100vh - 1.2rem - 1.4rem); /* 减去header和footer高度 */
 }
 
 .song-item {
