@@ -302,7 +302,7 @@ function clickNext() {
 }
 
 function clickToTop() {
-  document.documentElement.scrollTo({ top: 0, behavior: 'smooth' });
+  document.querySelector('.song-list').scrollTo({ top: 0, behavior: 'smooth' });
 }
 </script>
 
