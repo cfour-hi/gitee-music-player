@@ -1,11 +1,24 @@
 html {
+  height: 100%;
   background: #1e201e;
   color: #ddd;
   overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+*, *:before, *:after {
+  box-sizing: inherit;
 }
 
 body {
+  height: 100%;
   font-size: 0.28rem;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .ellipsis {

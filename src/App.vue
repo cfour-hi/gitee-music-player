@@ -31,7 +31,7 @@
   </header>
   <main class="song-list">
     <div
-      v-for="(song, index) in filteredSongs"
+      v-for="song in filteredSongs"
       :key="song.sha"
       class="song-item"
       :class="{ active: songListSorted.indexOf(song) === songActiveIndex }"
@@ -51,10 +51,7 @@
       没有找到「{{ searchContent }}」相关的歌曲
     </div>
   </main>
-  <div class="to-top" @click="clickToTop">
-    <svg-icon name="to-top"></svg-icon>
-  </div>
-  <footer v-if="songActive">
+  <footer v-if="songActive" @click="clickFooter">
     <div
       class="audio-progress"
       :style="{ transform: `scaleX(${audioProgress})` }"
@@ -74,16 +71,19 @@
       <svg-icon
         v-show="!audioPlaying"
         name="play"
-        @click="clickResume"
+        @click.stop="clickResume"
       ></svg-icon>
       <svg-icon
         v-show="audioPlaying"
         name="pause"
-        @click="clickPause"
+        @click.stop="clickPause"
       ></svg-icon>
-      <svg-icon name="next" @click="clickNext"></svg-icon>
+      <svg-icon name="next" @click.stop="clickNext"></svg-icon>
     </div>
   </footer>
+   <div class="to-top" @click="clickToTop">
+    <svg-icon name="to-top"></svg-icon>
+  </div>
 </template>
 
 <script setup>
@@ -278,6 +278,13 @@ function toAudioProgrssFrame() {
   window.requestAnimationFrame(toAudioProgrssFrame);
 }
 
+function clickFooter() {
+  const activeItem = document.querySelector('.song-item.active');
+  if (activeItem) {
+    activeItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+}
+
 function clickPause() {
   audioRef.value.pause();
   audioPlaying.value = false;
@@ -301,59 +308,52 @@ function clickToTop() {
 
 <style scoped>
 header {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  background: #1e201e;
-  display: flex;
-  align-items: center;
-  height: 1.2rem;
-  padding: 0 0.16rem;
-  box-sizing: border-box;
-  overflow: hidden;
-}
-
-header .toolbar {
-  display: flex;
-  align-items: center;
-  flex: auto;
-  height: 100%;
-}
-
-header .toolbar > .svg-icon {
   flex: 0 0 1.2rem;
-  padding: 0.4rem 0;
-  font-size: 0.35rem;
-}
-
-header .svg-icon__loading.loading {
-  animation: 1s linear infinite loading;
-}
-
-header .play-btns {
-  flex: auto;
-  display: inline-flex;
-  justify-content: center;
-  gap: 0.3rem;
-}
-
-header button {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 0.15rem;
-  border: 1px solid #666;
-  padding: 0.15rem;
-  border-radius: 0.1rem;
-  color: currentColor;
-  background: transparent;
-}
+  background: #1e201e;
+  overflow: hidden;
+  
+  .toolbar {
+    display: flex;
+    align-items: center;
+    flex: auto;
+    height: 100%;
 
-header button .svg-icon {
-  font-size: 0.3rem;
+      > .svg-icon {
+      flex: 0 0 1.2rem;
+      font-size: 0.35rem;
+    } 
+  }
+
+  .svg-icon__loading.loading {
+    animation: 1s linear infinite loading;
+  }
+
+  .play-btns {
+    flex: auto;
+    display: inline-flex;
+    justify-content: center;
+    gap: 0.3rem;
+  }
+
+  button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.15rem;
+    border: 1px solid #666;
+    padding: 0.15rem;
+    border-radius: 0.1rem;
+    color: currentColor;
+    background: transparent;
+
+    .svg-icon {
+      font-size: 0.3rem;
+    }
+  }
 }
 
 .input-search {
-  box-sizing: border-box;
   flex: auto;
   width: 0;
   padding: 0.04rem 0.1rem;
@@ -365,7 +365,6 @@ header button .svg-icon {
 
 .search-close {
   flex: 0 0 1.2rem;
-  padding: 0.4rem 0;
   font-size: 0.35rem;
   cursor: pointer;
 }
@@ -378,16 +377,17 @@ header button .svg-icon {
 }
 
 .song-list {
-  margin-bottom: 1.4rem;
+  flex: auto;
+  overflow: auto;
 }
 
 .song-item {
   display: flex;
   align-items: center;
-}
 
-.song-item.active {
-  background: #69756544;
+  &.active {
+    background: #69756544;
+  }
 }
 
 .song-cover {
@@ -396,21 +396,23 @@ header button .svg-icon {
   object-fit: contain;
 }
 
-.song-item .song-info {
-  flex: auto;
-  width: 0;
-  border-bottom: 1px solid #333;
-}
+.song-item {
+  .song-info {
+    flex: auto;
+    width: 0;
+    border-bottom: 1px solid #333;
+  }
 
-.song-info .song-name {
-  margin-top: 1em;
-}
+  .song-name {
+    margin-top: 1em;
+  }
 
-.song-info .song-author {
-  padding-bottom: 1em;
-  margin-top: 0.8em;
-  font-size: 0.9em;
-  color: #aaa;
+  .song-author {
+    padding-bottom: 1em;
+    margin-top: 0.8em;
+    font-size: 0.9em;
+    color: #aaa;
+  }
 }
 
 .to-top {
@@ -431,46 +433,45 @@ header button .svg-icon {
 }
 
 footer {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: #697565;
+  flex: 0 0 1.2rem;
   display: flex;
   align-items: center;
+  background: #697565;
 }
 
-footer .song-cover {
-  flex: none;
-}
+footer {
+  .song-cover {
+    flex: none;
+  }
 
-footer .song-info {
-  flex: auto;
-  width: 0;
-  border-bottom: none;
-}
+  .song-info {
+    flex: auto;
+    width: 0;
+    border-bottom: none;
+  }
 
-footer .song-operate {
-  flex: 0 0 1.6rem;
-  margin-right: 0.25rem;
-  display: inline-flex;
-  justify-content: space-around;
+  .song-operate {
+    flex: 0 0 1.6rem;
+    margin-right: 0.25rem;
+    display: inline-flex;
+    justify-content: space-around;
+  }
+
+  .audio-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 0.04rem;
+    background: #aaa;
+    transform-origin: 0;
+  }
 }
 
 footer .song-operate .svg-icon__play,
 footer .song-operate .svg-icon__pause,
 footer .song-operate .svg-icon__next {
   font-size: 2em;
-}
-
-footer .audio-progress {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 0.04rem;
-  background: #aaa;
-  transform-origin: 0;
 }
 
 @keyframes loading {
