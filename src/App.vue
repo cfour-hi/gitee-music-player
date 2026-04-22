@@ -149,6 +149,20 @@ function updateMediaSessionMetadata() {
   navigator.mediaSession.metadata = metadata;
 }
 
+// 更新浏览器标签页标题
+function updateDocumentTitle() {
+  if (!songActive.value || !songActive.value._tag) {
+    document.title = 'Music';
+    return;
+  }
+
+  const title = songActive.value._tag.tags.title;
+  const artist = songActive.value._tag.tags.artist;
+  const playingIcon = audioPlaying.value ? '🎵' : '⏸️';
+  
+  document.title = `${playingIcon} ${title} - ${artist}`;
+}
+
 // 注册媒体会话事件处理器，用于集成浏览器媒体控制（如系统媒体快捷键、通知中心播放控件等）
 function registerMediaEvents() {
   // 检测浏览器是否支持 MediaSession API，不支持则直接返回
@@ -268,6 +282,8 @@ async function clickResume() {
   audioPlaying.value = true;
   // 更新媒体会话元数据
   updateMediaSessionMetadata();
+  // 更新浏览器标签页标题
+  updateDocumentTitle();
   // 请求动画帧更新音频进度条（启动实时进度更新循环）
   window.requestAnimationFrame(toAudioProgrssFrame);
 }
@@ -288,6 +304,8 @@ function clickFooter() {
 function clickPause() {
   audioRef.value.pause();
   audioPlaying.value = false;
+  // 更新标签页标题为暂停状态
+  updateDocumentTitle();
 }
 
 function clickPrev() {
