@@ -108,7 +108,7 @@ const audioProgress = ref(0);
 const musicDB = useMusicDB();
 const { searchRef, searching, searchContent, filteredSongs, clickSearch, closeSearch, blurSearchInput } =
   useMusicSearch(songListSorted);
-const { resolveSongData, resolveSongTag, toSongCover } = useSongParse();
+const { resolveSongData, resolveSongTag, toSongCover, parseSongInfo } = useSongParse();
 
 onMounted(async () => {
   songLoading.value = true;
@@ -125,6 +125,13 @@ async function resolveSongsFromLocal() {
     song._tag = await resolveSongTag(song.blob);
     song._cover = toSongCover(song._tag);
     song._src = URL.createObjectURL(song.blob);
+    
+    // 从文件名解析歌曲信息，如果成功则覆盖标签信息
+    const parsedInfo = parseSongInfo(song.path);
+    if (parsedInfo) {
+      song._tag.tags.title = parsedInfo.title;
+      song._tag.tags.artist = parsedInfo.artist;
+    }
   }
   songList.value = songs;
 }
@@ -221,9 +228,9 @@ async function clickRefresh() {
     (o) => !songList.value.find((p) => p.sha === o.sha),
   );
   // 批量处理新歌曲（每批10首，避免请求过于密集）
-  for (let i = 0; i < newSongs.length / 10; i += 1) {
-    const start = i * 10;
-    const sliceSongs = newSongs.slice(start, start + 10);
+  for (let i = 0; i < newSongs.length / 5; i += 1) {
+    const start = i * 5;
+    const sliceSongs = newSongs.slice(start, start + 5);
     // 并行处理当前批次的歌曲：解析歌曲数据并添加到本地数据库
     const resolvedSongs = await Promise.all(
       sliceSongs.map(async (song) => {
