@@ -39,11 +39,11 @@ export default function useSongParse() {
     return blob;
   }
 
-  // 通过 Gitee Raw 直链下载二进制音频文件
-  // 公开仓库无需 token，浏览器直接返回二进制流，无 base64 开销
+  // 通过 Gitee API v5 Raw 端点下载二进制音频文件
+  // API 域名带 CORS 头，公开仓库匿名访问即可，无 base64 开销
   const MIME_MAP = { mp3: 'audio/mpeg', m4a: 'audio/mp4', flac: 'audio/flac', ogg: 'audio/ogg', wav: 'audio/wav' };
   async function resolveSongBlob(song) {
-    const rawUrl = `https://gitee.com/${OWNER}/${song.repo}/raw/${BRANCH}/${song.path}`;
+    const rawUrl = `https://gitee.com/api/v5/repos/${OWNER}/${song.repo}/raw/${encodeURI(song.path)}?ref=${BRANCH}`;
     const res = await fetch(rawUrl);
     if (!res.ok) {
       throw new Error(`下载失败 [${res.status}]: ${rawUrl}`);

@@ -44,16 +44,20 @@ registerRoute(
   })
 );
 
-// Gitee API 缓存（歌曲列表）
+// Gitee Raw 文件缓存（音乐二进制内容）
+// Raw URL 格式: https://gitee.com/api/v5/repos/{owner}/{repo}/raw/{path}?ref={branch}
+// 必须先于 API 列表路由注册，否则会被下面的 NetworkFirst 路由截获
 registerRoute(
-  ({ url }) => url.origin === 'https://gitee.com' && url.pathname.includes('/api/v5/repos/'),
-  new NetworkFirst({
-    cacheName: 'gitee-api-cache',
-    networkTimeoutSeconds: 10,
+  ({ url }) =>
+    url.origin === 'https://gitee.com' &&
+    url.pathname.includes('/api/v5/repos/') &&
+    url.pathname.includes('/raw/'),
+  new CacheFirst({
+    cacheName: 'gitee-raw-cache',
     plugins: [
       new ExpirationPlugin({
-        maxEntries: 100,
-        maxAgeSeconds: 60 * 60 * 24 * 7, // 7 天
+        maxEntries: 500,
+        maxAgeSeconds: 60 * 60 * 24 * 365, // 365 天
       }),
       new CacheableResponsePlugin({
         statuses: [0, 200],
@@ -62,19 +66,19 @@ registerRoute(
   })
 );
 
-// Gitee Raw 文件缓存（音乐二进制内容）
-// Raw URL 格式: https://gitee.com/{owner}/{repo}/raw/{branch}/{path}
-// 走 CacheFirst：首次拉取后长期缓存，离线可直接播放
+// Gitee API 缓存（歌曲列表，排除 raw 下载请求）
 registerRoute(
   ({ url }) =>
     url.origin === 'https://gitee.com' &&
-    url.pathname.includes('/raw/'),
-  new CacheFirst({
-    cacheName: 'gitee-raw-cache',
+    url.pathname.includes('/api/v5/repos/') &&
+    !url.pathname.includes('/raw/'),
+  new NetworkFirst({
+    cacheName: 'gitee-api-cache',
+    networkTimeoutSeconds: 10,
     plugins: [
       new ExpirationPlugin({
-        maxEntries: 500,
-        maxAgeSeconds: 60 * 60 * 24 * 365, // 365 天
+        maxEntries: 100,
+        maxAgeSeconds: 60 * 60 * 24 * 7, // 7 天
       }),
       new CacheableResponsePlugin({
         statuses: [0, 200],
