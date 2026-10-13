@@ -1,5 +1,6 @@
 const OWNER = import.meta.env.VITE_OWNER;
 const BRANCH = import.meta.env.PROD ? import.meta.env.VITE_BRANCH : 'dev';
+const ACCESS_TOKEN = import.meta.env.VITE_ACCESS_TOKEN;
 
 export default function useSongParse() {
   // 从文件名解析歌手和歌曲名（格式：歌手名 - 歌曲名.扩展名）
@@ -40,10 +41,10 @@ export default function useSongParse() {
   }
 
   // 通过 Gitee API v5 Raw 端点下载二进制音频文件
-  // API 域名带 CORS 头，公开仓库匿名访问即可，无 base64 开销
+  // API 域名带 CORS 头；raw 端点即使公开仓库也需要 token 鉴权
   const MIME_MAP = { mp3: 'audio/mpeg', m4a: 'audio/mp4', flac: 'audio/flac', ogg: 'audio/ogg', wav: 'audio/wav' };
   async function resolveSongBlob(song) {
-    const rawUrl = `https://gitee.com/api/v5/repos/${OWNER}/${song.repo}/raw/${encodeURI(song.path)}?ref=${BRANCH}`;
+    const rawUrl = `https://gitee.com/api/v5/repos/${OWNER}/${song.repo}/raw/${encodeURI(song.path)}?ref=${BRANCH}&access_token=${ACCESS_TOKEN}`;
     const res = await fetch(rawUrl);
     if (!res.ok) {
       throw new Error(`下载失败 [${res.status}]: ${rawUrl}`);
