@@ -1,4 +1,5 @@
-const ACCESS_TOKEN = import.meta.env.VITE_ACCESS_TOKEN;
+const OWNER = import.meta.env.VITE_OWNER;
+const BRANCH = import.meta.env.PROD ? import.meta.env.VITE_BRANCH : 'dev';
 
 export default function useSongParse() {
   // 从文件名解析歌手和歌曲名（格式：歌手名 - 歌曲名.扩展名）
@@ -10,14 +11,14 @@ export default function useSongParse() {
     const nameWithoutExt = filename.replace(/\.[^.]+$/, '');
     // 按 " - " 分割
     const parts = nameWithoutExt.split(' - ');
-    
+
     if (parts.length >= 2) {
       return {
         artist: parts[0].trim(),
         title: parts.slice(1).join(' - ').trim(), // 支持歌曲名中包含 " - "
       };
     }
-    
+
     // 如果格式不匹配，返回 null，表示回退到使用 tags
     return null;
   }
@@ -27,29 +28,34 @@ export default function useSongParse() {
     song._tag = await resolveSongTag(blob);
     song._cover = toSongCover(song._tag);
     song._src = URL.createObjectURL(blob);
-    
+
     // 从文件名解析歌曲信息，如果成功则覆盖标签信息
     const parsedInfo = parseSongInfo(song.path);
     if (parsedInfo) {
       song._tag.tags.title = parsedInfo.title;
       song._tag.tags.artist = parsedInfo.artist;
     }
-    
+
     return blob;
   }
 
+  // 通过 Gitee Raw 直链下载二进制音频文件
+  // 公开仓库无需 token，浏览器直接返回二进制流，无 base64 开销
+  const MIME_MAP = { mp3: 'audio/mpeg', m4a: 'audio/mp4', flac: 'audio/flac', ogg: 'audio/ogg', wav: 'audio/wav' };
   async function resolveSongBlob(song) {
-    const res = await fetch(`${song.url}?access_token=${ACCESS_TOKEN}`);
-    const resData = await res.json();
-    const binaryData = atob(resData.content);
-    const arrayBuffer = new ArrayBuffer(binaryData.length);
-    const uint8Array = new Uint8Array(arrayBuffer);
-    for (let i = 0; i < binaryData.length; i++) {
-      uint8Array[i] = binaryData.charCodeAt(i);
+    const rawUrl = `https://gitee.com/${OWNER}/${song.repo}/raw/${BRANCH}/${song.path}`;
+    const res = await fetch(rawUrl);
+    if (!res.ok) {
+      throw new Error(`下载失败 [${res.status}]: ${rawUrl}`);
     }
+    const blob = await res.blob();
+    // 确保 Blob 带有正确的 audio MIME type，否则 <audio> 可能拒绝播放
     const ext = song.path?.split('.').pop()?.toLowerCase();
-    const mimeMap = { mp3: 'audio/mpeg', m4a: 'audio/mp4', flac: 'audio/flac', ogg: 'audio/ogg', wav: 'audio/wav' };
-    return new Blob([uint8Array], { type: mimeMap[ext] || 'audio/mpeg' });
+    const correctType = MIME_MAP[ext];
+    if (correctType && blob.type !== correctType) {
+      return new Blob([blob], { type: correctType });
+    }
+    return blob;
   }
 
   function resolveSongTag(blob) {

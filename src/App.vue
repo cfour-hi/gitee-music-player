@@ -94,7 +94,6 @@ import useMusicSearch from './hooks/use-music-search';
 import { nextTick, onMounted, ref } from 'vue';
 import { isAudio } from './helper'
 
-const ACCESS_TOKEN = import.meta.env.VITE_ACCESS_TOKEN;
 const OWNER = import.meta.env.VITE_OWNER;
 const REPOS = import.meta.env.VITE_REPOS.split(',');
 const BRANCH = import.meta.env.PROD ? import.meta.env.VITE_BRANCH : 'dev';
@@ -109,6 +108,18 @@ const musicDB = useMusicDB();
 const { searchRef, searching, searchContent, filteredSongs, clickSearch, closeSearch, blurSearchInput } =
   useMusicSearch(songListSorted);
 const { resolveSongData, resolveSongTag, toSongCover, parseSongInfo } = useSongParse();
+
+// 检测当前是否为按流量计费的网络（蜂窝网络）
+// 不支持检测时默认返回 false（不拦截），避免误阻用户
+function isMeteredConnection() {
+  const conn = navigator.connection;
+  if (!conn) return false;
+  // type 直接标明 cellular 时按流量计费
+  if (conn.type === 'cellular') return true;
+  // effectiveType 为慢网络时大概率是蜂窝
+  if (['slow-2g', '2g', '3g'].includes(conn.effectiveType)) return true;
+  return false;
+}
 
 onMounted(async () => {
   songLoading.value = true;
@@ -201,12 +212,13 @@ async function clickRefresh() {
   if (songLoading.value) return;
   songLoading.value = true;
 
-  // 从所有仓库获取歌曲列表
+  // 从所有仓库获取歌曲列表（公开仓库匿名访问即可）
   const allRemoteSongs = (await Promise.all(REPOS.map(async repo => {
     try {
-      const res = await fetch(`https://gitee.com/api/v5/repos/${OWNER}/${repo}/git/trees/${BRANCH}?access_token=${ACCESS_TOKEN}`);
+      const res = await fetch(`https://gitee.com/api/v5/repos/${OWNER}/${repo}/git/trees/${BRANCH}`);
       const data = await res.json();
-      return data.tree.filter(isAudio);
+      // 标记每首歌所属仓库，用于后续构造 Raw 下载地址
+      return data.tree.filter(isAudio).map(item => ({ ...item, repo }));
     } catch(err) {
       console.log(`从仓库"${repo}"获取歌曲列表失败`)
     }
@@ -227,6 +239,17 @@ async function clickRefresh() {
   const newSongs = allRemoteSongs.filter(
     (o) => !songList.value.find((p) => p.sha === o.sha),
   );
+
+  // 蜂窝网络检测：如果有新歌要下载且当前可能是移动网络，提醒用户
+  if (newSongs.length > 0 && isMeteredConnection()) {
+    const ok = window.confirm(
+      `当前检测到可能是蜂窝网络，即将下载 ${newSongs.length} 首新歌（约几十 MB），可能消耗移动流量。\n\n点击"确定"继续下载，点击"取消"仅更新列表不下载歌曲。`,
+    );
+    if (!ok) {
+      songLoading.value = false;
+      return;
+    }
+  }
   // 批量处理新歌曲（每批10首，避免请求过于密集）
   for (let i = 0; i < newSongs.length / 5; i += 1) {
     const start = i * 5;
@@ -239,7 +262,7 @@ async function clickRefresh() {
           blob,
           path: song.path,
           sha: song.sha,
-          url: song.url,
+          repo: song.repo,
         });
         return song;
       }),

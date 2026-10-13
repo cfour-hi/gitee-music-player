@@ -62,14 +62,15 @@ registerRoute(
   })
 );
 
-// Gitee Blob 缓存（音乐文件内容）
+// Gitee Raw 文件缓存（音乐二进制内容）
+// Raw URL 格式: https://gitee.com/{owner}/{repo}/raw/{branch}/{path}
+// 走 CacheFirst：首次拉取后长期缓存，离线可直接播放
 registerRoute(
-  ({ url }) => 
-    url.origin === 'https://gitee.com' && 
-    url.pathname.includes('/api/v5/repos/') && 
-    url.pathname.includes('/git/blobs/'),
+  ({ url }) =>
+    url.origin === 'https://gitee.com' &&
+    url.pathname.includes('/raw/'),
   new CacheFirst({
-    cacheName: 'gitee-blob-cache',
+    cacheName: 'gitee-raw-cache',
     plugins: [
       new ExpirationPlugin({
         maxEntries: 500,
