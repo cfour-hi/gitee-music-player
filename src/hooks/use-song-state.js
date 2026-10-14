@@ -45,8 +45,10 @@ export default function useSongState(musicDB, songListRef) {
     loaded.value = true;
   }
 
-  async function recordPlay(sha, playedRatio) {
-    const completed = playedRatio >= SKIP_RATIO;
+  async function recordPlay(sha, playedRatio, kind = 'next') {
+    // "上一首"是导航回退：无论播放进度如何都记为已听，
+    // 避免把回退误判为"跳过"，从而误累加 recentSkipCount、误触发自动冷却
+    const completed = kind === 'prev' || playedRatio >= SKIP_RATIO;
     const event = { sha, at: Date.now(), completed, playedRatio };
     await musicDB.addEvent(event);
 
@@ -72,9 +74,29 @@ export default function useSongState(musicDB, songListRef) {
   }
 
   async function unfreeze(sha) {
+    // 清除手动冻结标记（持久 + 内存）
     await musicDB.update(sha, { manualCooledUntil: null });
     const song = songListRef.value.find((s) => s.sha === sha);
     if (song) song.manualCooledUntil = null;
+
+    // 同时解除自动冷却：删除该歌曲未完成的播放事件并重置内存统计，
+    // 否则 recentSkipCount 仍 >= 2，getState 的 autoCooled 依旧成立，解冻无效
+    const removed = await musicDB.deleteUncompletedEvents(sha);
+    if (removed.length) {
+      const s = stateMap.get(sha);
+      if (s) {
+        s.recentSkipCount = 0;
+        s.lastSkipAt = 0;
+      }
+      // 同步小时分布，减去被删事件的影响
+      const hist = hourHistogram.get(sha);
+      if (hist) {
+        for (const ev of removed) {
+          const hour = new Date(ev.at).getHours();
+          if (hist[hour] > 0) hist[hour]--;
+        }
+      }
+    }
   }
 
   function getState(song) {

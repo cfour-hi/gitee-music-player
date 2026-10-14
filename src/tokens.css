@@ -1,0 +1,86 @@
+/* ============================================================
+ * 设计令牌（Design Tokens）
+ * 参考 Ant Design 5.x token 体系，适配本项目深色主题 + 移动端 PWA
+ * ============================================================ */
+
+:root {
+  /* ---------- 主色（Brand） ---------- */
+  --color-primary: #4a9d5f;
+  --color-primary-hover: #5bb070;
+  --color-primary-active: #3d8b52;
+  --color-primary-bg: rgba(74, 157, 95, 0.15);
+
+  /* ---------- 背景色 ---------- */
+  --color-bg-base: #1a1c1a;
+  --color-bg-elevated: #262826;
+  --color-bg-container: #222422;
+  --color-bg-hover: #2e302e;
+
+  /* ---------- 文字色（提升对比度） ---------- */
+  --color-text: #e8e8e8;
+  --color-text-secondary: #b0b0b0;
+  --color-text-tertiary: #8c8c8c;
+  --color-text-quaternary: #666666;
+  --color-text-disabled: #5a5a5a;
+  --color-text-inverse: #ffffff;
+
+  /* ---------- 边框色 ---------- */
+  --color-border: #3a3a3a;
+  --color-border-secondary: #2a2a2a;
+  --color-border-divider: #252525;
+
+  /* ---------- 语义色 ---------- */
+  --color-success: #4a9d5f;
+  --color-warning: #c98a3d;
+  --color-info: #4a7a9d;
+  --color-danger: #c94a4a;
+
+  /* ---------- 遮罩 ---------- */
+  --color-mask: rgba(0, 0, 0, 0.6);
+
+  /* ---------- 间距（Spacing）统一节奏 ---------- */
+  --spacing-xs: 0.08rem;
+  --spacing-sm: 0.16rem;
+  --spacing-md: 0.24rem;
+  --spacing-lg: 0.32rem;
+  --spacing-xl: 0.48rem;
+  --spacing-2xl: 0.64rem;
+
+  /* ---------- 圆角（Radius）三级制 ---------- */
+  --radius-sm: 0.06rem;
+  --radius-md: 0.1rem;
+  --radius-lg: 0.16rem;
+  --radius-xl: 0.24rem;
+  --radius-round: 50%;
+
+  /* ---------- 字号（Font Size） ---------- */
+  --font-size-caption: 0.22rem;
+  --font-size-sm: 0.26rem;
+  --font-size-base: 0.3rem;
+  --font-size-md: 0.34rem;
+  --font-size-lg: 0.4rem;
+
+  /* ---------- 行高 ---------- */
+  --line-height-tight: 1.3;
+  --line-height-base: 1.6;
+  --line-height-relaxed: 1.8;
+
+  /* ---------- 阴影 ---------- */
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-popup: 0 -4px 20px rgba(0, 0, 0, 0.5);
+
+  /* ---------- 层级（Z-index） ---------- */
+  --z-index-backtop: 10;
+  --z-index-action-sheet: 100;
+  --z-index-toast: 200;
+
+  /* ---------- 动效 ---------- */
+  --motion-duration-fast: 0.15s;
+  --motion-duration-normal: 0.3s;
+  --motion-ease: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ---------- 按钮尺寸 ---------- */
+  --btn-height-sm: 0.56rem;
+  --btn-height-md: 0.72rem;
+  --icon-btn-size: 0.64rem;
+}

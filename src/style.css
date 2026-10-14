@@ -1,7 +1,9 @@
+@import './tokens.css';
+
 html {
   height: 100%;
-  background: #1e201e;
-  color: #ddd;
+  background: var(--color-bg-base);
+  color: var(--color-text);
   overflow-x: hidden;
   box-sizing: border-box;
 }
@@ -12,7 +14,8 @@ html {
 
 body {
   height: 100%;
-  font-size: 0.28rem;
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-base);
 }
 
 #app {

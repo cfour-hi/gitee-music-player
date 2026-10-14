@@ -129,6 +129,28 @@ export default function useMusicDB() {
     });
   }
 
+  // 删除某首歌所有未完成的播放事件（“立即解冻”时清除自动冷却依据）
+  function deleteUncompletedEvents(sha) {
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(EVENTS_STORE_NAME, 'readwrite');
+      const store = tx.objectStore(EVENTS_STORE_NAME);
+      const index = store.index('sha');
+      const req = index.openCursor(IDBKeyRange.only(sha));
+      const removed = [];
+      req.onerror = reject;
+      req.onsuccess = (evt) => {
+        const cursor = evt.target.result;
+        if (cursor) {
+          if (!cursor.value.completed) removed.push({ key: cursor.primaryKey, at: cursor.value.at });
+          cursor.continue();
+        } else {
+          for (const { key } of removed) store.delete(key);
+          resolve(removed);
+        }
+      };
+    });
+  }
+
   return {
     db,
     connect,
@@ -138,5 +160,6 @@ export default function useMusicDB() {
     delete: del,
     addEvent,
     getAllEvents,
+    deleteUncompletedEvents,
   };
 }
