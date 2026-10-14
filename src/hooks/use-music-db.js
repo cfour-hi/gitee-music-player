@@ -1,6 +1,7 @@
 const DB_NAME = import.meta.env.PROD ? 'music' : 'music-dev';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const DB_STORE_NAME = 'songs';
+const EVENTS_STORE_NAME = 'play_events';
 
 export default function useMusicDB() {
   let db;
@@ -25,9 +26,22 @@ export default function useMusicDB() {
     _resolve?.(db);
   };
   request.onupgradeneeded = (evt) => {
-    evt.target.result.createObjectStore(DB_STORE_NAME, {
-      keyPath: 'sha',
-    });
+    const db = evt.target.result;
+    const oldVersion = evt.oldVersion;
+
+    // v0 → v2（全新安装）：创建 songs store
+    if (oldVersion < 1) {
+      db.createObjectStore(DB_STORE_NAME, { keyPath: 'sha' });
+    }
+
+    // v1 → v2（升级）：新增 play_events store
+    if (oldVersion < 2) {
+      const eventStore = db.createObjectStore(EVENTS_STORE_NAME, {
+        autoIncrement: true,
+      });
+      eventStore.createIndex('sha', 'sha', { unique: false });
+      eventStore.createIndex('at', 'at', { unique: false });
+    }
   };
 
   function get(sha) {
@@ -54,6 +68,28 @@ export default function useMusicDB() {
     });
   }
 
+  // 更新歌曲记录的可编辑字段（tags / manualCooledUntil）
+  // 注意：不会覆盖 blob / path / sha 等已有字段，只 patch 传入的字段
+  function update(sha, patch) {
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(DB_STORE_NAME, 'readwrite');
+      const store = tx.objectStore(DB_STORE_NAME);
+      const getReq = store.get(sha);
+      getReq.onerror = reject;
+      getReq.onsuccess = () => {
+        const record = getReq.result;
+        if (!record) {
+          reject(new Error(`歌曲 ${sha} 不存在`));
+          return;
+        }
+        Object.assign(record, patch);
+        const putReq = store.put(record);
+        putReq.onerror = reject;
+        putReq.onsuccess = () => resolve(record);
+      };
+    });
+  }
+
   function del(sha) {
     return new Promise((resolve, reject) => {
       const store = db
@@ -65,11 +101,42 @@ export default function useMusicDB() {
     });
   }
 
+  // ---- play_events ----
+
+  function addEvent(event) {
+    return new Promise((resolve, reject) => {
+      const store = db
+        .transaction(EVENTS_STORE_NAME, 'readwrite')
+        .objectStore(EVENTS_STORE_NAME);
+      const req = store.add(event);
+      req.onerror = reject;
+      req.onsuccess = (evt) => {
+        resolve(evt.target.result);
+      };
+    });
+  }
+
+  function getAllEvents() {
+    return new Promise((resolve, reject) => {
+      const store = db
+        .transaction(EVENTS_STORE_NAME)
+        .objectStore(EVENTS_STORE_NAME);
+      const req = store.getAll();
+      req.onerror = reject;
+      req.onsuccess = (evt) => {
+        resolve(req.result || []);
+      };
+    });
+  }
+
   return {
     db,
     connect,
     get,
     add,
+    update,
     delete: del,
+    addEvent,
+    getAllEvents,
   };
 }

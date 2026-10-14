@@ -6,15 +6,24 @@
         :class="{ loading: songLoading }"
         @click="clickRefresh"
       ></svg-icon>
-      <div v-if="songList.length > 0" class="play-btns">
+      <div v-if="displayedSongs.length > 0" class="play-btns">
         <button @click="clickPlayByOrder">
           <svg-icon name="play"></svg-icon>
-          顺序播放
+          顺序
         </button>
         <button @click="clickPlayByRandom">
           <svg-icon name="play-random"></svg-icon>
-          随机播放
+          随机
         </button>
+      </div>
+      <div v-if="displayedSongs.length > 0" class="mood-bar">
+        <button
+          v-for="m in moods"
+          :key="m.key"
+          class="mood-btn"
+          :class="{ active: mood === m.key }"
+          @click="setMood(m.key)"
+        >{{ m.label }}</button>
       </div>
       <svg-icon name="search" @click="clickSearch"></svg-icon>
     </div>
@@ -24,47 +33,63 @@
       ref="searchRef"
       type="text"
       class="input-search"
-      placeholder="搜索歌曲、歌手、专辑"
+      placeholder="支持拼音、首字母、繁体，空格分隔多个关键词"
       @blur="blurSearchInput"
+      @keydown.esc="closeSearch"
     />
-    <svg-icon v-show="searching" name="close" class="search-close" @click="closeSearch"></svg-icon>
+    <svg-icon v-show="searching" name="close" class="search-close" @click="clearSearch"></svg-icon>
   </header>
+
+  <div v-if="searching && searchContent && displayedSongs.length > 0" class="search-summary">
+    共 {{ displayedSongs.length }} 首
+  </div>
+
   <main class="song-list">
     <div
-      v-for="song in filteredSongs"
+      v-for="song in displayedSongs"
       :key="song.sha"
       class="song-item"
-      :class="{ active: songListSorted.indexOf(song) === songActiveIndex }"
-      @click="clickSong(songListSorted.indexOf(song))"
+      :class="{
+        active: activeSongSha === song.sha,
+        cooled: getSongState(song).isCooled,
+      }"
+      @click="clickSongBySha(song.sha)"
+      @touchstart="onItemTouchStart(song)"
+      @touchend="onItemTouchEnd"
+      @touchmove="onItemTouchEnd"
+      @contextmenu.prevent="openAction(song)"
     >
       <img :src="song._cover || ''" class="song-cover" />
       <div class="song-info">
         <div class="song-name ellipsis">
-          {{ song._tag && song._tag.tags.title }}
+          <span v-html="hl(song._tag && song._tag.tags.title)"></span>
+          <span v-if="getSongState(song).isCooled" class="cool-badge">
+            冷却中 · {{ getSongState(song).coolDownDays }} 天
+          </span>
         </div>
-        <div class="song-author ellipsis">
-          {{ song._tag && song._tag.tags.artist }}
-        </div>
+        <div class="song-author ellipsis" v-html="hl(song._tag && song._tag.tags.artist)"></div>
       </div>
     </div>
-    <div v-if="filteredSongs.length === 0 && searchContent" class="search-empty">
-      没有找到「{{ searchContent }}」相关的歌曲
+    <div v-if="searching && searchContent && displayedSongs.length === 0" class="search-empty">
+      <div class="search-empty-title">没有找到「{{ searchContent }}」相关的歌曲</div>
+      <div class="search-empty-hint">试试：少输几个字 / 用歌手名或专辑名 / 检查错别字；支持拼音、首字母和繁体搜索</div>
     </div>
   </main>
-  <footer v-if="songActive" @click="clickFooter">
+
+  <footer v-if="activeSong" @click="clickFooter">
     <div
       class="audio-progress"
       :style="{ transform: `scaleX(${audioProgress})` }"
     >
-      <audio ref="audioRef" :src="songActive._src"></audio>
+      <audio ref="audioRef" :src="activeSong._src"></audio>
     </div>
-    <img :src="songActive._cover || ''" class="song-cover" />
+    <img :src="activeSong._cover || ''" class="song-cover" />
     <div class="song-info">
       <div class="song-name ellipsis">
-        {{ songActive._tag.tags.title }}
+        {{ activeSong._tag.tags.title }}
       </div>
       <div class="song-author ellipsis">
-        {{ songActive._tag.tags.artist }}
+        {{ activeSong._tag.tags.artist }}
       </div>
     </div>
     <div class="song-operate">
@@ -81,8 +106,60 @@
       <svg-icon name="next" @click.stop="clickNext"></svg-icon>
     </div>
   </footer>
-   <div class="to-top" @click="clickToTop">
+  <div class="to-top" @click="clickToTop">
     <svg-icon name="to-top"></svg-icon>
+  </div>
+
+  <!-- 长按操作菜单 -->
+  <div v-if="actionSong" class="action-overlay" @click="closeAction">
+    <div class="action-sheet" @click.stop>
+      <template v-if="!editingMeta">
+        <div class="action-title ellipsis">
+          {{ actionSong._tag?.tags.title }}
+        </div>
+        <div class="action-sub ellipsis">
+          {{ actionSong._tag?.tags.artist }}
+        </div>
+        <div class="action-buttons">
+          <button v-if="getSongState(actionSong).isCooled" class="action-btn unfreeze" @click="clickUnfreeze">
+            立即解冻
+          </button>
+          <button v-else class="action-btn cool" @click="clickManualCool">
+            暂别 4 周
+          </button>
+          <button class="action-btn edit" @click="openEditMeta">
+            编辑信息
+          </button>
+          <button class="action-btn close" @click="closeAction">关闭</button>
+        </div>
+      </template>
+      <template v-else>
+        <div class="action-title">编辑歌曲信息</div>
+        <div class="edit-form">
+          <label>
+            <span>歌名</span>
+            <input v-model="editForm.title" type="text" placeholder="歌名" />
+          </label>
+          <label>
+            <span>歌手</span>
+            <input v-model="editForm.artist" type="text" placeholder="歌手" />
+          </label>
+          <label>
+            <span>专辑</span>
+            <input v-model="editForm.album" type="text" placeholder="专辑" />
+          </label>
+        </div>
+        <div class="action-buttons">
+          <button class="action-btn reset" @click="resetEditMeta">
+            清除修正
+          </button>
+          <button class="action-btn save" @click="saveEditMeta">
+            保存
+          </button>
+          <button class="action-btn close" @click="cancelEditMeta">取消</button>
+        </div>
+      </template>
+    </div>
   </div>
 </template>
 
@@ -90,33 +167,66 @@
 import useSong from './hooks/use-song';
 import useMusicDB from './hooks/use-music-db';
 import useSongParse from './hooks/use-song-parse';
-import useMusicSearch from './hooks/use-music-search';
-import { nextTick, onMounted, ref } from 'vue';
+import useMusicSearch, { highlightText } from './hooks/use-music-search';
+import useSongState from './hooks/use-song-state';
+import useMood from './hooks/use-mood';
+import { nextTick, onMounted, ref, computed } from 'vue';
 import { isAudio } from './helper'
 
 const OWNER = import.meta.env.VITE_OWNER;
 const REPOS = import.meta.env.VITE_REPOS.split(',');
-const BRANCH = import.meta.env.PROD ? import.meta.env.VITE_BRANCH : 'dev';
+const BRANCH = import.meta.env.VITE_BRANCH;
+const ACCESS_TOKEN = import.meta.env.VITE_ACCESS_TOKEN;
 
-const { songLoading, songList, songListSorted, songActiveIndex, songActive } = useSong();
+const { songLoading, songList, songListSorted } = useSong();
 
 const audioRef = ref(null);
 const audioPlaying = ref(false);
 const audioProgress = ref(0);
 
 const musicDB = useMusicDB();
-const { searchRef, searching, searchContent, filteredSongs, clickSearch, closeSearch, blurSearchInput } =
+const { searchRef, searching, searchContent, filteredSongs, keywords, clickSearch, closeSearch, clearSearch, blurSearchInput } =
   useMusicSearch(songListSorted);
-const { resolveSongData, resolveSongTag, toSongCover, parseSongInfo } = useSongParse();
+const { resolveSongData, resolveSongTag, toSongCover, finalizeSongMeta } = useSongParse();
+
+// 冷却状态 + 情绪开关
+const songState = useSongState(musicDB, songList);
+const { moods, mood, setMood, targetHour } = useMood();
+
+// 当前激活歌曲 sha（替代 index 作为高亮依据）
+const activeSongSha = ref(null);
+// 当前播放模式：'order' 顺序播放 / 'random' 智能随机（默认顺序，兼容直接点歌后的自然播放）
+const playMode = ref('order');
+const activeSong = computed(() =>
+  songList.value.find((s) => s.sha === activeSongSha.value) || null
+);
+
+// 长按菜单
+const actionSong = ref(null);
+let longPressTimer = null;
+
+// 编辑歌曲信息（手动修正 title/artist/album）
+const editingMeta = ref(false);
+const editForm = ref({ title: '', artist: '', album: '' });
+
+// 列表 = 搜索过滤结果（不再按场景标签过滤）
+const displayedSongs = computed(() => filteredSongs.value);
+
+// 搜索命中高亮（仅原文子串命中，拼音命中不高亮；内部已做 HTML 转义）
+function hl(text) {
+  return highlightText(text, keywords.value);
+}
+
+// 暴露给模板的 getState 包装
+function getSongState(song) {
+  return songState.getState(song);
+}
 
 // 检测当前是否为按流量计费的网络（蜂窝网络）
-// 不支持检测时默认返回 false（不拦截），避免误阻用户
 function isMeteredConnection() {
   const conn = navigator.connection;
   if (!conn) return false;
-  // type 直接标明 cellular 时按流量计费
   if (conn.type === 'cellular') return true;
-  // effectiveType 为慢网络时大概率是蜂窝
   if (['slow-2g', '2g', '3g'].includes(conn.effectiveType)) return true;
   return false;
 }
@@ -124,6 +234,7 @@ function isMeteredConnection() {
 onMounted(async () => {
   songLoading.value = true;
   await musicDB.connect();
+  await songState.init();
   await resolveSongsFromLocal();
   songLoading.value = false;
 
@@ -132,35 +243,46 @@ onMounted(async () => {
 
 async function resolveSongsFromLocal() {
   const songs = await musicDB.get();
+  const resolvedSongs = [];
   for (const song of songs) {
-    song._tag = await resolveSongTag(song.blob);
-    song._cover = toSongCover(song._tag);
-    song._src = URL.createObjectURL(song.blob);
-    
-    // 从文件名解析歌曲信息，如果成功则覆盖标签信息
-    const parsedInfo = parseSongInfo(song.path);
-    if (parsedInfo) {
-      song._tag.tags.title = parsedInfo.title;
-      song._tag.tags.artist = parsedInfo.artist;
+    try {
+      song._tag = await resolveSongTag(song.blob);
+      song._cover = toSongCover(song._tag);
+      song._src = URL.createObjectURL(song.blob);
+    } catch (err) {
+      // 坏歌容错：单首解析失败只跳过，不阻塞整个歌曲列表加载
+      console.error('本地歌曲解析失败（已跳过）:', song.path, err?.message || err);
+      continue;
     }
+    // 兼容旧数据：默认 tags 为空数组、manualCooledUntil 为 null
+    if (!Array.isArray(song.tags)) song.tags = [];
+    if (song.manualCooledUntil === undefined) song.manualCooledUntil = null;
+    // 旧数据没有 addedAt，设为 0（很久以前），不触发新歌蜜月期
+    if (!song.addedAt) song.addedAt = 0;
+    // 兼容旧数据：manualMeta 字段
+    if (song.manualMeta === undefined) song.manualMeta = null;
+
+    // 统一走"手动修正 > ID3 tag > 文件名"的优先级合并
+    finalizeSongMeta(song);
+    resolvedSongs.push(song);
   }
-  songList.value = songs;
+  songList.value = resolvedSongs;
 }
 
 // 更新媒体会话元数据
 function updateMediaSessionMetadata() {
   if (!navigator.mediaSession) return;
-  if (!songActive.value || !songActive.value._tag) return;
+  if (!activeSong.value || !activeSong.value._tag) return;
 
   const metadata = new MediaMetadata({
-    title: songActive.value._tag.tags.title,
-    artist: songActive.value._tag.tags.artist,
-    album: songActive.value._tag.tags.album || '未知专辑',
-    artwork: songActive.value._cover ? [
+    title: activeSong.value._tag.tags.title,
+    artist: activeSong.value._tag.tags.artist,
+    album: activeSong.value._tag.tags.album || '未知专辑',
+    artwork: activeSong.value._cover ? [
       {
-        src: songActive.value._cover,
+        src: activeSong.value._cover,
         sizes: '512x512',
-        type: songActive.value._tag.tags.picture?.format || 'image/jpeg',
+        type: activeSong.value._tag.tags.picture?.format || 'image/jpeg',
       },
     ] : [],
   });
@@ -169,27 +291,24 @@ function updateMediaSessionMetadata() {
 
 // 更新浏览器标签页标题
 function updateDocumentTitle() {
-  if (!songActive.value || !songActive.value._tag) {
+  if (!activeSong.value || !activeSong.value._tag) {
     document.title = 'Music';
     return;
   }
 
-  const title = songActive.value._tag.tags.title;
-  const artist = songActive.value._tag.tags.artist;
+  const title = activeSong.value._tag.tags.title;
+  const artist = activeSong.value._tag.tags.artist;
   const playingIcon = audioPlaying.value ? '🎵' : '⏸️';
-  
+
   document.title = `${playingIcon} ${title} - ${artist}`;
 }
 
-// 注册媒体会话事件处理器，用于集成浏览器媒体控制（如系统媒体快捷键、通知中心播放控件等）
+// 注册媒体会话事件处理器
 function registerMediaEvents() {
-  // 检测浏览器是否支持 MediaSession API，不支持则直接返回
   if (!navigator.mediaSession) return;
 
-  // 设置 "播放" 动作处理器
   navigator.mediaSession.setActionHandler('play', () => {
-    // 如果已有活跃歌曲，恢复播放；否则触发随机播放
-    if (songActiveIndex.value >= 0) {
+    if (activeSongSha.value) {
       clickResume();
     } else {
       clickPlayByRandom();
@@ -197,129 +316,176 @@ function registerMediaEvents() {
     updateMediaSessionMetadata();
   });
 
-  // 设置 "暂停" 动作处理器，直接调用暂停函数
   navigator.mediaSession.setActionHandler('pause', clickPause);
-  // 设置 "上一曲" 动作处理器（当前为 TODO 状态）
   navigator.mediaSession.setActionHandler('previoustrack', clickPrev);
-  // 设置 "下一曲" 动作处理器，调用下一曲函数
   navigator.mediaSession.setActionHandler('nexttrack', clickNext);
 
   updateMediaSessionMetadata();
 }
 
-// 刷新歌曲列表函数：从多个远程仓库同步最新歌曲数据，更新本地数据库和歌曲列表
+// 刷新歌曲列表
 async function clickRefresh() {
   if (songLoading.value) return;
   songLoading.value = true;
+  try {
+    let fetchFailed = false;
+    const allRemoteSongs = (await Promise.all(REPOS.map(async repo => {
+      try {
+        const res = await fetch(`https://gitee.com/api/v5/repos/${OWNER}/${repo}/git/trees/${BRANCH}?access_token=${ACCESS_TOKEN}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        return data.tree.filter(isAudio).map(item => ({ ...item, repo }));
+      } catch(err) {
+        fetchFailed = true;
+        console.log(`从仓库"${repo}"获取歌曲列表失败`, err);
+      }
+      return [];
+    }))).flat();
 
-  // 从所有仓库获取歌曲列表（公开仓库匿名访问即可）
-  const allRemoteSongs = (await Promise.all(REPOS.map(async repo => {
-    try {
-      const res = await fetch(`https://gitee.com/api/v5/repos/${OWNER}/${repo}/git/trees/${BRANCH}`);
-      const data = await res.json();
-      // 标记每首歌所属仓库，用于后续构造 Raw 下载地址
-      return data.tree.filter(isAudio).map(item => ({ ...item, repo }));
-    } catch(err) {
-      console.log(`从仓库"${repo}"获取歌曲列表失败`)
+    // 清理本地已删除的歌曲（仅当所有仓库都拉取成功时执行，避免接口失败导致误删）
+    if (!fetchFailed) {
+      for (let i = songList.value.length - 1; i >= 0; i -= 1) {
+        const song = songList.value[i];
+        if (!allRemoteSongs.find((o) => o.sha === song.sha)) {
+          await musicDB.delete(song.sha);
+          songList.value.splice(i, 1);
+        }
+      }
     }
-    return [];
-  }))).flat();
 
-  // 清理本地已删除的歌曲：反向遍历当前歌曲列表（避免删除时索引错乱）
-  for (let i = songList.value.length - 1; i >= 0; i -= 1) {
-    const song = songList.value[i];
-    // 如果远程仓库中不存在当前歌曲（通过 SHA 唯一标识判断），则删除本地数据
-    if (!allRemoteSongs.find((o) => o.sha === song.sha)) {
-      await musicDB.delete(song.sha);
-      songList.value.splice(i, 1);
+    // 去重以 IndexedDB 为准：合并内存列表与库中已有 sha，
+    // 避免「已入库但未显示」的歌曲被重复下载触发主键冲突
+    const localSongs = await musicDB.get();
+    const localShaSet = new Set([
+      ...songList.value.map((s) => s.sha),
+      ...localSongs.map((s) => s.sha),
+    ]);
+    const newSongs = allRemoteSongs.filter((o) => !localShaSet.has(o.sha));
+
+    if (newSongs.length > 0 && isMeteredConnection()) {
+      const ok = window.confirm(
+        `当前检测到可能是蜂窝网络，即将下载 ${newSongs.length} 首新歌（约几十 MB），可能消耗移动流量。\n\n点击"确定"继续下载，点击"取消"仅更新列表不下载歌曲。`,
+      );
+      if (!ok) return;
     }
-  }
-
-  // 筛选远程仓库中的新歌曲：排除已存在于本地列表的歌曲
-  const newSongs = allRemoteSongs.filter(
-    (o) => !songList.value.find((p) => p.sha === o.sha),
-  );
-
-  // 蜂窝网络检测：如果有新歌要下载且当前可能是移动网络，提醒用户
-  if (newSongs.length > 0 && isMeteredConnection()) {
-    const ok = window.confirm(
-      `当前检测到可能是蜂窝网络，即将下载 ${newSongs.length} 首新歌（约几十 MB），可能消耗移动流量。\n\n点击"确定"继续下载，点击"取消"仅更新列表不下载歌曲。`,
-    );
-    if (!ok) {
-      songLoading.value = false;
-      return;
+    for (let i = 0; i < newSongs.length / 5; i += 1) {
+      const start = i * 5;
+      const sliceSongs = newSongs.slice(start, start + 5);
+      // 失败隔离：单首失败只跳过该首并记录日志，不影响同批及后续歌曲
+      const results = await Promise.allSettled(
+        sliceSongs.map(async (song) => {
+          const blob = await resolveSongData(song);
+          await musicDB.add({
+            blob,
+            path: song.path,
+            sha: song.sha,
+            repo: song.repo,
+            addedAt: Date.now(),
+            tags: [],
+            manualCooledUntil: null,
+          });
+          return song;
+        }),
+      );
+      const resolvedSongs = [];
+      for (const r of results) {
+        if (r.status === 'fulfilled') {
+          resolvedSongs.push(r.value);
+        } else {
+          console.error('歌曲下载失败（已跳过）:', r.reason?.message || r.reason);
+        }
+      }
+      songList.value.push(...resolvedSongs);
     }
+  } finally {
+    // 兜底复位：无论成功还是失败，加载状态都必须结束，避免刷新图标永久旋转
+    songLoading.value = false;
   }
-  // 批量处理新歌曲（每批10首，避免请求过于密集）
-  for (let i = 0; i < newSongs.length / 5; i += 1) {
-    const start = i * 5;
-    const sliceSongs = newSongs.slice(start, start + 5);
-    // 并行处理当前批次的歌曲：解析歌曲数据并添加到本地数据库
-    const resolvedSongs = await Promise.all(
-      sliceSongs.map(async (song) => {
-        const blob = await resolveSongData(song);
-        await musicDB.add({
-          blob,
-          path: song.path,
-          sha: song.sha,
-          repo: song.repo,
-        });
-        return song;
-      }),
-    );
-    songList.value.push(...resolvedSongs);
-  }
-  songLoading.value = false;
 }
 
-// 顺序播放处理函数
+// ---- 播放控制 ----
+
+// 顺序播放：在 displayedSongs 里往下走
 async function clickPlayByOrder(evt) {
-  let index = 0;
-  // 判断条件：如果没有事件触发或事件类型是歌曲播放结束，且当前活跃歌曲索引不是最后一首
-  if (
-    (!evt || evt.type === 'ended') &&
-    songActiveIndex.value < songList.value.length - 1
-  ) {
-    index = songActiveIndex.value + 1;
+  playMode.value = 'order';
+  const list = displayedSongs.value;
+  if (!list.length) return;
+
+  let idx = 0;
+  if (activeSongSha.value) {
+    const currentIdx = list.findIndex((s) => s.sha === activeSongSha.value);
+    if (currentIdx >= 0 && (!evt || evt.type === 'ended') && currentIdx < list.length - 1) {
+      idx = currentIdx + 1;
+    } else if (currentIdx >= 0) {
+      idx = currentIdx;
+    }
   }
-  await clickSong(index);
+  await playSong(list[idx]);
 }
 
-// 随机播放处理函数
+// 智能随机：加权随机，排除冷却中的歌，按时段自动匹配
 async function clickPlayByRandom() {
-  const index = Math.floor(Math.random() * songList.value.length);
-  await clickSong(index);
-  audioRef.value.onended = clickPlayByRandom;
+  playMode.value = 'random';
+  const candidates = displayedSongs.value.filter((s) => !getSongState(s).isCooled);
+  if (!candidates.length) return;
+
+  const picked = songState.weightedPick(candidates, targetHour());
+  if (!picked) return;
+
+  await playSong(picked);
 }
 
-
-async function clickSong(index) {
-  // 如果当前有活跃歌曲且正在播放，先暂停当前播放并重置进度
-  if (songActiveIndex.value >= 0 && audioPlaying.value) {
-    clickPause();
-    audioRef.value.currentTime = 0;
+async function playSong(song) {
+  // 记录上一首的播放事件
+  if (activeSongSha.value && audioRef.value && audioRef.value.duration > 0) {
+    const prev = songList.value.find((s) => s.sha === activeSongSha.value);
+    if (prev && isFinite(audioRef.value.duration)) {
+      const ratio = audioRef.value.currentTime / audioRef.value.duration;
+      await songState.recordPlay(prev.sha, ratio);
+    }
   }
-  songActiveIndex.value = index;
-  // 等待DOM更新完成（确保新的songActive已渲染）
+
+  if (audioPlaying.value) {
+    clickPause();
+  }
+
+  activeSongSha.value = song.sha;
   await nextTick();
   await clickResume();
-  audioRef.value.onended = clickPlayByOrder;
+  // 自然播完 → 按当前播放模式切下一首（播放事件由 playSong 切换时统一记录，避免重复）
+  audioRef.value.onended = () => {
+    if (playMode.value === 'random') {
+      clickPlayByRandom();
+    } else {
+      clickPlayByOrder({ type: 'ended' });
+    }
+  };
 }
 
-// 恢复音频播放功能，继续播放当前暂停的歌曲
+async function clickSongBySha(sha) {
+  const song = songList.value.find((s) => s.sha === sha);
+  if (!song) return;
+
+  // 如果点的是冷却中的歌 → 解冻而不是播放
+  const st = getSongState(song);
+  if (st.isCooled && activeSongSha.value !== sha) {
+    await songState.unfreeze(sha);
+    return;
+  }
+
+  await playSong(song);
+}
+
 async function clickResume() {
   await audioRef.value.play();
   audioPlaying.value = true;
-  // 更新媒体会话元数据
   updateMediaSessionMetadata();
-  // 更新浏览器标签页标题
   updateDocumentTitle();
-  // 请求动画帧更新音频进度条（启动实时进度更新循环）
   window.requestAnimationFrame(toAudioProgrssFrame);
 }
 
 function toAudioProgrssFrame() {
-  if (songActiveIndex.value < 0 || !audioPlaying.value) return;
+  if (!activeSongSha.value || !audioPlaying.value) return;
   audioProgress.value = audioRef.value.currentTime / audioRef.value.duration;
   window.requestAnimationFrame(toAudioProgrssFrame);
 }
@@ -334,7 +500,6 @@ function clickFooter() {
 function clickPause() {
   audioRef.value.pause();
   audioPlaying.value = false;
-  // 更新标签页标题为暂停状态
   updateDocumentTitle();
 }
 
@@ -343,14 +508,104 @@ function clickPrev() {
 }
 
 function clickNext() {
-  if (audioRef.value.onended) {
-    return audioRef.value.onended();
+  // 手动切歌：按当前播放模式切，playSong 会按当前播放进度记录跳过事件
+  if (playMode.value === 'random') {
+    clickPlayByRandom();
+  } else {
+    clickPlayByOrder();
   }
-  clickPlayByOrder();
 }
 
 function clickToTop() {
   document.querySelector('.song-list').scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ---- 长按菜单 ----
+
+function onItemTouchStart(song) {
+  longPressTimer = setTimeout(() => {
+    openAction(song);
+  }, 500);
+}
+
+function onItemTouchEnd() {
+  clearTimeout(longPressTimer);
+}
+
+function openAction(song) {
+  actionSong.value = song;
+}
+
+function closeAction() {
+  actionSong.value = null;
+  editingMeta.value = false;
+}
+
+async function clickManualCool() {
+  if (!actionSong.value) return;
+  await songState.manualCool(actionSong.value.sha, 28);
+  closeAction();
+}
+
+async function clickUnfreeze() {
+  if (!actionSong.value) return;
+  await songState.unfreeze(actionSong.value.sha);
+  closeAction();
+}
+
+// ---- 编辑歌曲信息（手动修正）----
+
+function openEditMeta() {
+  if (!actionSong.value) return;
+  editForm.value = {
+    title: actionSong.value._tag?.tags.title || '',
+    artist: actionSong.value._tag?.tags.artist || '',
+    album: actionSong.value._tag?.tags.album || '',
+  };
+  editingMeta.value = true;
+}
+
+function cancelEditMeta() {
+  editingMeta.value = false;
+}
+
+async function saveEditMeta() {
+  if (!actionSong.value) return;
+  const sha = actionSong.value.sha;
+  const manualMeta = {
+    title: editForm.value.title.trim(),
+    artist: editForm.value.artist.trim(),
+    album: editForm.value.album.trim(),
+  };
+  try {
+    await musicDB.update(sha, { manualMeta });
+  } catch (err) {
+    console.error('保存手动修正失败:', err);
+  }
+  const song = songList.value.find((s) => s.sha === sha);
+  if (song) {
+    song.manualMeta = manualMeta;
+    finalizeSongMeta(song);
+    actionSong.value = song;
+  }
+  editingMeta.value = false;
+}
+
+async function resetEditMeta() {
+  if (!actionSong.value) return;
+  const sha = actionSong.value.sha;
+  try {
+    await musicDB.update(sha, { manualMeta: null });
+  } catch (err) {
+    console.error('清除手动修正失败:', err);
+  }
+  const song = songList.value.find((s) => s.sha === sha);
+  if (song) {
+    song.manualMeta = null;
+    finalizeSongMeta(song);
+    actionSong.value = song;
+  }
+  editingMeta.value = false;
 }
 </script>
 
@@ -361,17 +616,19 @@ header {
   align-items: center;
   background: #1e201e;
   overflow: hidden;
-  
+
   .toolbar {
     display: flex;
     align-items: center;
     flex: auto;
     height: 100%;
+    gap: 0.15rem;
+    padding: 0 0.1rem;
 
       > .svg-icon {
-      flex: 0 0 1.2rem;
+      flex: 0 0 0.8rem;
       font-size: 0.35rem;
-    } 
+    }
   }
 
   .svg-icon__loading.loading {
@@ -379,24 +636,24 @@ header {
   }
 
   .play-btns {
-    flex: auto;
     display: inline-flex;
-    justify-content: center;
-    gap: 0.3rem;
+    gap: 0.15rem;
   }
 
   button {
     display: inline-flex;
     align-items: center;
-    gap: 0.15rem;
-    border: 1px solid #666;
-    padding: 0.15rem;
-    border-radius: 0.1rem;
-    color: currentColor;
+    gap: 0.08rem;
+    border: 1px solid #555;
+    padding: 0.1rem 0.2rem;
+    border-radius: 0.08rem;
+    color: #ccc;
     background: transparent;
+    font-size: 0.24rem;
+    white-space: nowrap;
 
     .svg-icon {
-      font-size: 0.3rem;
+      font-size: 0.28rem;
     }
   }
 }
@@ -417,11 +674,58 @@ header {
   cursor: pointer;
 }
 
+.search-summary {
+  flex: 0 0 auto;
+  padding: 0.08rem 0.3rem;
+  color: #999;
+  font-size: 0.24rem;
+  border-bottom: 1px solid #333;
+}
+
 .search-empty {
   text-align: center;
-  padding: 1rem 0;
+  padding: 1rem 0.4rem;
   color: #888;
   font-size: 0.28rem;
+
+  .search-empty-title {
+    margin-bottom: 0.15rem;
+  }
+
+  .search-empty-hint {
+    color: #666;
+    font-size: 0.24rem;
+    line-height: 1.6;
+  }
+}
+
+/* 搜索命中高亮（v-html 注入的 mark 不在模板作用域内，需 :deep） */
+:deep(mark) {
+  background: #697565;
+  color: #fff;
+  border-radius: 0.04rem;
+  padding: 0 0.04rem;
+}
+
+/* 情绪开关：靠右 */
+.mood-bar {
+  display: inline-flex;
+  gap: 0.05rem;
+  margin-left: auto;
+}
+
+.mood-btn {
+  padding: 0.06rem 0.1rem;
+  border: none;
+  background: transparent;
+  font-size: 0.28rem;
+  cursor: pointer;
+  line-height: 1;
+  border-radius: 0.08rem;
+
+  &.active {
+    background: #697565;
+  }
 }
 
 .song-list {
@@ -432,10 +736,27 @@ header {
 .song-item {
   display: flex;
   align-items: center;
+  user-select: none;
+  -webkit-user-select: none;
 
   &.active {
     background: #69756544;
   }
+
+  &.cooled .song-name {
+    color: #888;
+  }
+}
+
+.cool-badge {
+  display: inline-block;
+  margin-left: 0.15rem;
+  padding: 0.02rem 0.12rem;
+  border-radius: 0.1rem;
+  background: #444;
+  color: #aaa;
+  font-size: 0.22rem;
+  vertical-align: middle;
 }
 
 .song-cover {
@@ -520,6 +841,111 @@ footer .song-operate .svg-icon__play,
 footer .song-operate .svg-icon__pause,
 footer .song-operate .svg-icon__next {
   font-size: 2em;
+}
+
+/* 长按操作菜单 */
+.action-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+}
+
+.action-sheet {
+  width: 100%;
+  background: #2a2c2a;
+  border-radius: 0.2rem 0.2rem 0 0;
+  padding: 0.4rem 0.3rem 0.5rem;
+}
+
+.action-title {
+  font-size: 0.3rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.action-sub {
+  font-size: 0.24rem;
+  color: #999;
+  text-align: center;
+  margin-top: 0.08rem;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.2rem;
+  margin-top: 0.2rem;
+}
+
+.action-btn {
+  flex: 1;
+  padding: 0.2rem;
+  border-radius: 0.1rem;
+  border: none;
+  font-size: 0.26rem;
+  cursor: pointer;
+
+  &.cool {
+    background: #8b6f47;
+    color: #fff;
+  }
+
+  &.unfreeze {
+    background: #5a7a5a;
+    color: #fff;
+  }
+
+  &.edit {
+    background: #4a5a6a;
+    color: #fff;
+  }
+
+  &.save {
+    background: #5a7a5a;
+    color: #fff;
+  }
+
+  &.reset {
+    background: #444;
+    color: #ccc;
+  }
+
+  &.close {
+    background: #444;
+    color: #ccc;
+  }
+}
+
+.edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin: 0.3rem 0 0.2rem;
+
+  label {
+    display: flex;
+    align-items: center;
+    gap: 0.15rem;
+    font-size: 0.24rem;
+    color: #aaa;
+
+    span {
+      flex: 0 0 0.6rem;
+    }
+
+    input {
+      flex: 1;
+      min-width: 0;
+      padding: 0.1rem 0.15rem;
+      border: 1px solid #555;
+      border-radius: 0.08rem;
+      background: #1e201e;
+      color: #eee;
+      font-size: 0.26rem;
+    }
+  }
 }
 
 @keyframes loading {
