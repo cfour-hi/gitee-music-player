@@ -36,6 +36,11 @@
       >{{ m.label }}</button>
     </div>
 
+    <!-- 发现（热门榜单） -->
+    <button class="icon-btn" @click="emit('openDiscover')" title="发现热门">
+      <CompassOutlined />
+    </button>
+
     <!-- 搜索图标按钮 -->
     <button class="icon-btn" @click="emit('search')" title="搜索">
       <SearchOutlined />
@@ -44,7 +49,7 @@
 </template>
 
 <script setup>
-import { ReloadOutlined, SearchOutlined, CaretRightFilled, SwapOutlined } from '@ant-design/icons-vue';
+import { ReloadOutlined, SearchOutlined, CaretRightFilled, SwapOutlined, CompassOutlined } from '@ant-design/icons-vue';
 
 defineProps({
   songLoading: { type: Boolean, default: false },
@@ -54,7 +59,7 @@ defineProps({
   playMode: { type: String, default: 'order' },
 });
 
-const emit = defineEmits(['refresh', 'playByOrder', 'playByRandom', 'setMood', 'search']);
+const emit = defineEmits(['refresh', 'playByOrder', 'playByRandom', 'setMood', 'search', 'openDiscover']);
 </script>
 
 <style scoped>

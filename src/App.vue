@@ -12,6 +12,7 @@
       @play-by-random="clickPlayByRandom"
       @set-mood="setMood"
       @search="clickSearch"
+      @open-discover="discoverOpen = true"
     />
 
     <SearchBar
@@ -70,6 +71,13 @@
     @update:form="editForm = $event"
   />
 
+  <DiscoverPanel
+    v-if="discoverOpen"
+    :local-songs="songList"
+    @close="discoverOpen = false"
+    @play-local="playFromDiscover"
+  />
+
   <ToastContainer />
 </template>
 
@@ -91,6 +99,7 @@ import SearchBar from './components/SearchBar.vue';
 import SongList from './components/SongList.vue';
 import PlayerBar from './components/PlayerBar.vue';
 import SongActionSheet from './components/SongActionSheet.vue';
+import DiscoverPanel from './components/DiscoverPanel.vue';
 import ToastContainer from './components/ToastContainer.vue';
 
 const OWNER = import.meta.env.VITE_OWNER;
@@ -162,6 +171,15 @@ const activeSong = computed(() =>
 // ---- 长按菜单 ----
 const actionSong = ref(null);
 let longPressTimer = null;
+
+// ---- 发现面板 ----
+const discoverOpen = ref(false);
+
+// 从发现面板点已入库的歌：关闭面板并播放本地 blob
+async function playFromDiscover(song) {
+  discoverOpen.value = false;
+  await playSong(song);
+}
 
 // ---- 编辑歌曲信息 ----
 const editingMeta = ref(false);

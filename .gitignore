@@ -24,3 +24,6 @@ dist-ssr
 *.sw?
 
 *.env
+
+# CI 构建时动态生成的榜单数据
+src/data/toplist.json

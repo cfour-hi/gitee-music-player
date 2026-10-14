@@ -7,7 +7,7 @@ const toSimplified = Converter({ from: 't', to: 'cn' });
 
 // 归一化：繁体→简体、小写、去掉所有标点/空白，只保留中英文与数字。
 // 数据侧字段与输入关键词都走这一步，保证"七里香"能命中"七里香·Live"这类带符号的标题。
-function normalizeText(s) {
+export function normalizeText(s) {
   return toSimplified(String(s ?? ''))
     .toLowerCase()
     .replace(/[^\w\u4e00-\u9fa5]/g, '');
