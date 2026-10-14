@@ -82,6 +82,7 @@ import useSongParse from './hooks/use-song-parse';
 import useMusicSearch, { highlightText } from './hooks/use-music-search';
 import useSongState from './hooks/use-song-state';
 import useMood from './hooks/use-mood';
+import useMediaSession from './hooks/use-media-session';
 import { useToast } from './hooks/use-toast';
 import { isAudio } from './helper';
 
@@ -107,15 +108,26 @@ const playerBarRef = ref(null);
 const audioPlaying = ref(false);
 const audioProgress = ref(0);
 
-// 随机模式"上一首"用的播放历史栈（存 sha，栈顶为最近）
+// 随机模式"上一首/下一首"用的播放历史栈（存 sha，栈顶为最近）
+// back 栈：正常前进时压入当前歌；forward 栈：回退时压入当前歌，供"下一首"恢复
 const playHistory = ref([]);
 const PLAY_HISTORY_LIMIT = 100;
+const forwardStack = ref([]);
+const FORWARD_HISTORY_LIMIT = 100;
 
 function pushPlayHistory(sha) {
   const h = playHistory.value;
   if (h[h.length - 1] !== sha) {
     h.push(sha);
     if (h.length > PLAY_HISTORY_LIMIT) h.shift();
+  }
+}
+
+function pushForward(sha) {
+  const f = forwardStack.value;
+  if (f[f.length - 1] !== sha) {
+    f.push(sha);
+    if (f.length > FORWARD_HISTORY_LIMIT) f.shift();
   }
 }
 
@@ -189,8 +201,6 @@ onMounted(async () => {
   await songState.init();
   await resolveSongsFromLocal();
   songLoading.value = false;
-
-  registerMediaEvents();
 });
 
 async function resolveSongsFromLocal() {
@@ -216,24 +226,30 @@ async function resolveSongsFromLocal() {
   songList.value = resolvedSongs;
 }
 
-// ---- 媒体会话 ----
-function updateMediaSessionMetadata() {
-  if (!navigator.mediaSession) return;
-  if (!activeSong.value || !activeSong.value._tag) return;
+// ---- 媒体会话（车机 / 蓝牙 / 方向盘按键适配）----
+// 物理键 → 系统媒体服务 → navigator.mediaSession action 回调，不经 DOM keydown。
+// 详情见 use-media-session.js。
+const mediaSession = useMediaSession({
+  getAudioEl,
+  onPlay: handleMediaPlay,
+  onPause: clickPause,
+  onPrev: clickPrev,
+  onNext: clickNext,
+  // 真实播放状态跟随：来电 / 蓝牙断连等系统级暂停也会更新 UI 与进度循环
+  onPlayStateChange(playing) {
+    audioPlaying.value = playing;
+    updateDocumentTitle();
+    if (playing) window.requestAnimationFrame(toAudioProgrssFrame);
+  },
+});
 
-  const metadata = new MediaMetadata({
-    title: activeSong.value._tag.tags.title,
-    artist: activeSong.value._tag.tags.artist,
-    album: activeSong.value._tag.tags.album || '未知专辑',
-    artwork: activeSong.value._cover ? [
-      {
-        src: activeSong.value._cover,
-        sizes: '512x512',
-        type: activeSong.value._tag.tags.picture?.format || 'image/jpeg',
-      },
-    ] : [],
-  });
-  navigator.mediaSession.metadata = metadata;
+async function handleMediaPlay() {
+  if (activeSongSha.value) {
+    await clickResume();
+  } else {
+    await clickPlayByRandom();
+  }
+  mediaSession.updateMetadata(activeSong.value);
 }
 
 function updateDocumentTitle() {
@@ -245,25 +261,6 @@ function updateDocumentTitle() {
   const artist = activeSong.value._tag.tags.artist;
   const playingIcon = audioPlaying.value ? '🎵' : '⏸️';
   document.title = `${playingIcon} ${title} - ${artist}`;
-}
-
-function registerMediaEvents() {
-  if (!navigator.mediaSession) return;
-
-  navigator.mediaSession.setActionHandler('play', () => {
-    if (activeSongSha.value) {
-      clickResume();
-    } else {
-      clickPlayByRandom();
-    }
-    updateMediaSessionMetadata();
-  });
-
-  navigator.mediaSession.setActionHandler('pause', clickPause);
-  navigator.mediaSession.setActionHandler('previoustrack', clickPrev);
-  navigator.mediaSession.setActionHandler('nexttrack', clickNext);
-
-  updateMediaSessionMetadata();
 }
 
 // ---- 刷新歌曲列表 ----
@@ -388,8 +385,10 @@ async function playSong(song, kind = 'next', recordHistory = true) {
   }
 
   // 正常切歌时把当前歌压入历史栈；"上一首"回退播放不重新入栈，避免来回抖动
+  // 同时清空前进栈：点歌 / 随机 / 顺序都是新的前进路径，旧的"下一首恢复"不再有效
   if (recordHistory && activeSongSha.value) {
     pushPlayHistory(activeSongSha.value);
+    forwardStack.value.length = 0;
   }
 
   if (audioPlaying.value) {
@@ -429,9 +428,21 @@ async function clickSongBySha(sha) {
 async function clickResume() {
   const audioEl = getAudioEl();
   if (!audioEl) return;
-  await audioEl.play();
+  // 页面无用户手势时（如刚打开就用车机按键播放），play() 会被浏览器拒绝
+  try {
+    await audioEl.play();
+  } catch (err) {
+    // AbortError：play() 被后续操作中断（切歌/快速连按），非失败，忽略
+    if (err?.name === 'AbortError') return;
+    if (err?.name === 'NotAllowedError') {
+      toast.warning('需要先在屏幕上点一下播放，之后才能用车机/方向盘按键');
+    } else {
+      toast.error('播放失败');
+    }
+    return;
+  }
   audioPlaying.value = true;
-  updateMediaSessionMetadata();
+  mediaSession.updateMetadata(activeSong.value);
   updateDocumentTitle();
   window.requestAnimationFrame(toAudioProgrssFrame);
 }
@@ -483,13 +494,34 @@ async function playPrevFromHistory() {
     const sha = playHistory.value.pop();
     const song = songList.value.find((s) => s.sha === sha);
     if (!song) continue; // 该歌已被刷新移除，继续往前找
+    // 把当前歌压入前进栈，使"上一首后再下一首"能回到刚才那首
+    if (activeSongSha.value) pushForward(activeSongSha.value);
     await playSong(song, 'prev', false);
     return;
   }
 }
 
+// 随机模式"下一首"：若刚从"上一首"回来，优先沿前进栈恢复，否则重新随机
+async function playNextFromForward() {
+  while (forwardStack.value.length) {
+    const sha = forwardStack.value.pop();
+    const song = songList.value.find((s) => s.sha === sha);
+    if (!song) continue; // 该歌已被刷新移除，继续往前找
+    // 把当前歌压回历史栈，使"下一首后再上一首"仍能回到刚才那首
+    if (activeSongSha.value) pushPlayHistory(activeSongSha.value);
+    await playSong(song, 'next', false);
+    return;
+  }
+  clickPlayByRandom(); // 前进栈为空（如刚随机过），退回正常随机
+}
+
 function clickNext() {
   if (playMode.value === 'random') {
+    // 刚从"上一首"回来时，前进栈里还有刚才那首歌，优先恢复而非重新随机
+    if (forwardStack.value.length) {
+      playNextFromForward();
+      return;
+    }
     clickPlayByRandom();
   } else {
     clickPlayByOrder();
