@@ -90,14 +90,14 @@
         <button class="ctl" @click="$emit('next')" title="下一首">
           <StepForwardFilled />
         </button>
-      </div>
 
-      <!-- 睡眠定时弹出选项 -->
-      <div v-if="sleepMenuOpen" class="sleep-menu" @click.self="sleepMenuOpen = false">
-        <button @click="setSleep(15)">15 分钟</button>
-        <button @click="setSleep(30)">30 分钟</button>
-        <button @click="setSleep(60)">60 分钟</button>
-        <button v-if="sleepMinutes > 0" @click="setSleep(0)">取消定时</button>
+        <!-- 睡眠定时弹出选项（相对 footer 定位） -->
+        <div v-if="sleepMenuOpen" class="sleep-menu" @click.self="sleepMenuOpen = false">
+          <button @click="setSleep(15)">15 分钟</button>
+          <button @click="setSleep(30)">30 分钟</button>
+          <button @click="setSleep(60)">60 分钟</button>
+          <button v-if="sleepMinutes > 0" @click="setSleep(0)">取消定时</button>
+        </div>
       </div>
 
       <!-- 播放队列 -->
@@ -422,6 +422,7 @@ onBeforeUnmount(() => {
 
 .np-footer {
   flex: 0 0 auto;
+  position: relative;
   padding: 0.16rem 0.4rem calc(env(safe-area-inset-bottom, 0px) + 0.16rem);
 }
 
@@ -508,14 +509,15 @@ onBeforeUnmount(() => {
 
 .sleep-menu {
   position: absolute;
-  bottom: 4rem;
-  left: var(--spacing-md);
+  bottom: calc(100% + 0.12rem);
+  left: 0;
   background: rgba(30, 32, 30, 0.95);
   border-radius: var(--radius-md);
   padding: var(--spacing-xs);
   display: flex;
   flex-direction: column;
   gap: 2px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
   button {
     background: transparent;
     border: none;
