@@ -4,13 +4,10 @@
       v-show="!searching"
       :song-loading="songLoading"
       :has-songs="displayedSongs.length > 0"
-      :moods="moods"
-      :mood="mood"
       :play-mode="playMode"
       @refresh="clickRefresh"
       @play-by-order="clickPlayByOrder"
       @play-by-random="clickPlayByRandom"
-      @set-mood="setMood"
       @search="clickSearch"
       @open-discover="discoverOpen = true"
     />
@@ -117,7 +114,6 @@ import useMusicDB from './hooks/use-music-db';
 import useSongParse from './hooks/use-song-parse';
 import useMusicSearch, { highlightText } from './hooks/use-music-search';
 import useSongState from './hooks/use-song-state';
-import useMood from './hooks/use-mood';
 import useMediaSession from './hooks/use-media-session';
 import useLyrics from './hooks/use-lyrics';
 import { useToast } from './hooks/use-toast';
@@ -190,8 +186,6 @@ const { resolveSongData, resolveSongTag, toSongCover, finalizeSongMeta } = useSo
 
 // ---- 冷却 + 情绪 ----
 const songState = useSongState(musicDB, songList);
-const { moods, mood, setMood, targetHour } = useMood();
-
 // ---- 当前激活歌曲 ----
 const activeSongSha = ref(null);
 const playMode = ref('order');
@@ -439,7 +433,7 @@ async function clickPlayByRandom() {
   const candidates = displayedSongs.value.filter((s) => !getSongState(s).isCooled);
   if (!candidates.length) return;
 
-  const picked = songState.weightedPick(candidates, targetHour());
+  const picked = songState.weightedPick(candidates);
   if (!picked) return;
 
   await playSong(picked);

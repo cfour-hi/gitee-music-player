@@ -25,17 +25,6 @@
       </button>
     </div>
 
-    <!-- 情绪分段控制器 -->
-    <div v-if="hasSongs" class="mood-segment">
-      <button
-        v-for="m in moods"
-        :key="m.key"
-        class="mood-btn"
-        :class="{ active: mood === m.key }"
-        @click="emit('setMood', m.key)"
-      >{{ m.label }}</button>
-    </div>
-
     <!-- 发现（热门榜单） -->
     <button class="icon-btn" @click="emit('openDiscover')" title="发现热门">
       <CompassOutlined />
@@ -54,12 +43,10 @@ import { ReloadOutlined, SearchOutlined, CaretRightFilled, SwapOutlined, Compass
 defineProps({
   songLoading: { type: Boolean, default: false },
   hasSongs: { type: Boolean, default: false },
-  moods: { type: Array, default: () => [] },
-  mood: { type: String, default: 'neutral' },
   playMode: { type: String, default: 'order' },
 });
 
-const emit = defineEmits(['refresh', 'playByOrder', 'playByRandom', 'setMood', 'search', 'openDiscover']);
+const emit = defineEmits(['refresh', 'playByOrder', 'playByRandom', 'search', 'openDiscover']);
 </script>
 
 <style scoped>
@@ -135,32 +122,6 @@ const emit = defineEmits(['refresh', 'playByOrder', 'playByRandom', 'setMood', '
 
   .anticon {
     font-size: var(--font-size-sm);
-  }
-}
-
-/* 情绪分段控制器 */
-.mood-segment {
-  display: inline-flex;
-  margin-left: auto;
-  background: var(--color-bg-container);
-  border-radius: var(--radius-md);
-  padding: 0.04rem;
-  gap: 0;
-}
-
-.mood-btn {
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border: none;
-  background: transparent;
-  font-size: var(--font-size-base);
-  cursor: pointer;
-  line-height: 1;
-  border-radius: var(--radius-sm);
-  transition: all var(--motion-duration-fast) var(--motion-ease);
-
-  &.active {
-    background: var(--color-primary);
-    box-shadow: var(--shadow-card);
   }
 }
 
