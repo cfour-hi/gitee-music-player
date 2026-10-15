@@ -488,6 +488,9 @@ onBeforeUnmount(() => {
   background: var(--color-primary);
   width: 1.1rem;
   height: 1.1rem;
+  min-width: 1.1rem;
+  flex-shrink: 0;
+  padding: 0;
 }
 .ctl-main .anticon {
   color: #fff;
