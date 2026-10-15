@@ -84,8 +84,8 @@
           <StepBackwardFilled />
         </button>
         <button class="ctl ctl-main" @click="playing ? $emit('pause') : $emit('resume')" :title="playing ? '暂停' : '播放'">
-          <PauseCircleFilled v-if="playing" />
-          <PlayCircleFilled v-else />
+          <span v-if="playing" class="pause-icon"><i></i><i></i></span>
+          <span v-else class="play-icon"></span>
         </button>
         <button class="ctl" @click="$emit('next')" title="下一首">
           <StepForwardFilled />
@@ -112,7 +112,7 @@
 
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import { DownOutlined, PlayCircleFilled, PauseCircleFilled, StepBackwardFilled, StepForwardFilled, ClockCircleOutlined, UnorderedListOutlined } from '@ant-design/icons-vue';
+import { DownOutlined, StepBackwardFilled, StepForwardFilled, ClockCircleOutlined, UnorderedListOutlined } from '@ant-design/icons-vue';
 
 const props = defineProps({
   song: { type: Object, default: null },
@@ -491,6 +491,26 @@ onBeforeUnmount(() => {
 }
 .ctl-main .anticon {
   color: #fff;
+}
+
+/* 纯 CSS 暂停/播放图标，避免图标库自带圆框 */
+.pause-icon {
+  display: flex;
+  gap: 0.08rem;
+}
+.pause-icon i {
+  width: 0.08rem;
+  height: 0.28rem;
+  background: #fff;
+  border-radius: 1px;
+}
+.play-icon {
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0.16rem 0 0.16rem 0.28rem;
+  border-color: transparent transparent transparent #fff;
+  margin-left: 0.06rem;
 }
 
 .ctl {
