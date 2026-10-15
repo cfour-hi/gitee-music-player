@@ -508,9 +508,8 @@ onBeforeUnmount(() => {
 
 .sleep-menu {
   position: absolute;
-  bottom: 4.5rem;
-  left: 50%;
-  transform: translateX(-50%);
+  bottom: 5rem;
+  left: var(--spacing-md);
   background: rgba(30, 32, 30, 0.95);
   border-radius: var(--radius-md);
   padding: var(--spacing-xs);
@@ -525,6 +524,7 @@ onBeforeUnmount(() => {
     font-size: var(--font-size-base);
     cursor: pointer;
     border-radius: var(--radius-sm);
+    white-space: nowrap;
     &:hover { background: var(--color-bg-hover); }
   }
 }
