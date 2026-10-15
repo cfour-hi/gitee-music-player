@@ -1,21 +1,27 @@
 <template>
   <main class="song-list">
-    <template v-if="songs.length > 0">
+    <RecycleScroller
+      v-if="songs.length > 0"
+      v-slot="{ item: song }"
+      class="scroller"
+      :items="songs"
+      :item-size="itemSize"
+      key-field="sha"
+      :buffer="200"
+    >
       <SongItem
-        v-for="song in songs"
-        :key="song.sha"
         :song="song"
         :active="activeSongSha === song.sha"
         :cooled="getSongState(song).isCooled"
         :cool-down-days="getSongState(song).coolDownDays"
         :hl="hl"
-        @click="emit('clickSong', $event)"
-        @touchstart="emit('itemTouchStart', $event)"
+        @click="emit('clickSong', song.sha)"
+        @touchstart="emit('itemTouchStart', song)"
         @touchend="emit('itemTouchEnd')"
         @touchmove="emit('itemTouchMove')"
-        @contextmenu="emit('itemContextMenu', $event)"
+        @contextmenu="emit('itemContextMenu', song)"
       />
-    </template>
+    </RecycleScroller>
 
     <!-- 搜索空状态 -->
     <div v-else-if="searching && searchContent" class="search-empty">
@@ -44,6 +50,9 @@
 
 <script setup>
 import { SearchOutlined, InboxOutlined } from '@ant-design/icons-vue';
+import { RecycleScroller } from 'vue-virtual-scroller';
+import 'vue-virtual-scroller/dist/vue-virtual-scroller.css';
+import { onMounted, onBeforeUnmount, ref } from 'vue';
 import SongItem from './SongItem.vue';
 
 defineProps({
@@ -62,12 +71,31 @@ const emit = defineEmits([
   'itemTouchMove',
   'itemContextMenu',
 ]);
+
+// 歌曲项高度 = 封面 0.9rem + 上下 padding 0.16rem*2 = 1.22rem，加 1px border
+const itemSize = ref(122);
+function measureItemSize() {
+  const fs = parseFloat(getComputedStyle(document.documentElement).fontSize);
+  itemSize.value = Math.ceil(1.22 * fs) + 1;
+}
+onMounted(() => {
+  measureItemSize();
+  window.addEventListener('resize', measureItemSize);
+});
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', measureItemSize);
+});
 </script>
 
 <style scoped>
 .song-list {
   flex: auto;
-  overflow: auto;
+  overflow: hidden;
+  position: relative;
+}
+
+.scroller {
+  height: 100%;
 }
 
 .search-empty {
