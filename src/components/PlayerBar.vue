@@ -8,7 +8,7 @@
       ></div>
     </div>
 
-    <audio ref="audioRef" :src="song._src"></audio>
+    <audio ref="audioRef"></audio>
 
     <!-- 封面 -->
     <img :src="song._cover || ''" class="song-cover" alt="" />

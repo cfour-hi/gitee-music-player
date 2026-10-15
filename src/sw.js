@@ -86,3 +86,21 @@ registerRoute(
     ],
   })
 );
+
+// LRCLIB 歌词搜索结果缓存（歌词几乎不变，缓存 30 天）
+// 歌词本身已按 sha 存 IndexedDB，这里只缓存 HTTP 响应，避免首拉重复请求
+registerRoute(
+  ({ url }) => url.origin === 'https://lrclib.net' && url.pathname.startsWith('/api/'),
+  new CacheFirst({
+    cacheName: 'lrclib-cache',
+    plugins: [
+      new ExpirationPlugin({
+        maxEntries: 500,
+        maxAgeSeconds: 60 * 60 * 24 * 30,
+      }),
+      new CacheableResponsePlugin({
+        statuses: [200],
+      }),
+    ],
+  })
+);

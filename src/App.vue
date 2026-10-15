@@ -71,6 +71,26 @@
     @update:form="editForm = $event"
   />
 
+  <NowPlaying
+    v-if="nowPlayingOpen"
+    :song="activeSong"
+    :playing="audioPlaying"
+    :current-time="audioCurrentTime"
+    :duration="audioDuration"
+    :lines="lyricLines"
+    :plain-lyrics="plainLyrics"
+    :loading="lyricLoading"
+    :not-found="lyricNotFound"
+    :instrumental="instrumental"
+    :current-index="lyricCurrentIndex"
+    @close="nowPlayingOpen = false"
+    @resume="clickResume"
+    @pause="clickPause"
+    @prev="clickPrev"
+    @next="clickNext"
+    @seek="clickSeek"
+  />
+
   <DiscoverPanel
     v-if="discoverOpen"
     :local-songs="songList"
@@ -82,7 +102,7 @@
 </template>
 
 <script setup>
-import { nextTick, onMounted, ref, computed } from 'vue';
+import { nextTick, onMounted, ref, computed, watch } from 'vue';
 import { ToTopOutlined } from '@ant-design/icons-vue';
 import useSong from './hooks/use-song';
 import useMusicDB from './hooks/use-music-db';
@@ -91,6 +111,7 @@ import useMusicSearch, { highlightText } from './hooks/use-music-search';
 import useSongState from './hooks/use-song-state';
 import useMood from './hooks/use-mood';
 import useMediaSession from './hooks/use-media-session';
+import useLyrics from './hooks/use-lyrics';
 import { useToast } from './hooks/use-toast';
 import { isAudio } from './helper';
 
@@ -99,6 +120,7 @@ import SearchBar from './components/SearchBar.vue';
 import SongList from './components/SongList.vue';
 import PlayerBar from './components/PlayerBar.vue';
 import SongActionSheet from './components/SongActionSheet.vue';
+import NowPlaying from './components/NowPlaying.vue';
 import DiscoverPanel from './components/DiscoverPanel.vue';
 import ToastContainer from './components/ToastContainer.vue';
 
@@ -167,6 +189,27 @@ const playMode = ref('order');
 const activeSong = computed(() =>
   songList.value.find((s) => s.sha === activeSongSha.value) || null
 );
+
+// ---- 全屏播放页 + 歌词 ----
+const nowPlayingOpen = ref(false);
+const audioCurrentTime = ref(0);
+const audioDuration = ref(0);
+const {
+  lines: lyricLines,
+  plainLyrics,
+  loading: lyricLoading,
+  notFound: lyricNotFound,
+  instrumental,
+  currentIndex: lyricCurrentIndex,
+  load: loadLyrics,
+  sync: syncLyrics,
+} = useLyrics(musicDB);
+
+watch(activeSong, (s) => {
+  audioCurrentTime.value = 0;
+  audioDuration.value = 0;
+  loadLyrics(s);
+});
 
 // ---- 长按菜单 ----
 const actionSong = ref(null);
@@ -393,40 +436,73 @@ async function clickPlayByRandom() {
 }
 
 async function playSong(song, kind = 'next', recordHistory = true) {
-  const audioEl = getAudioEl();
-  if (activeSongSha.value && audioEl && audioEl.duration > 0) {
-    const prev = songList.value.find((s) => s.sha === activeSongSha.value);
-    if (prev && isFinite(audioEl.duration)) {
-      const ratio = audioEl.currentTime / audioEl.duration;
-      await songState.recordPlay(prev.sha, ratio, kind);
-    }
+  // 同步采集上一首播放进度（不 await，供播放后再记录统计）
+  // 必须在改 activeSongSha 之前读，否则 prevSha 会变成新歌自己
+  const prevSha = activeSongSha.value;
+  let prevRatio = null;
+
+  let audioEl = getAudioEl();
+
+  // 第一次点歌：PlayerBar 是 v-if="song"，此时 song 还是 null，<audio> 元素尚未挂载。
+  // 先激活歌曲让组件渲染出来，再拿 audio 元素。
+  // 只在首次走这条路径（多一个 nextTick），后续切歌 PlayerBar 已挂载，仍走最短路径。
+  if (!audioEl) {
+    activeSongSha.value = song.sha;
+    await nextTick();
+    audioEl = getAudioEl();
+    if (!audioEl) return;
   }
 
-  // 正常切歌时把当前歌压入历史栈；"上一首"回退播放不重新入栈，避免来回抖动
-  // 同时清空前进栈：点歌 / 随机 / 顺序都是新的前进路径，旧的"下一首恢复"不再有效
-  if (recordHistory && activeSongSha.value) {
-    pushPlayHistory(activeSongSha.value);
+  if (prevSha && audioEl.duration > 0 && Number.isFinite(audioEl.duration)) {
+    prevRatio = audioEl.currentTime / audioEl.duration;
+  }
+
+  // 正常切歌压入历史栈并清空前进栈；"上一首"回退不重新入栈，避免来回抖动
+  if (recordHistory && prevSha) {
+    pushPlayHistory(prevSha);
     forwardStack.value.length = 0;
   }
 
-  if (audioPlaying.value) {
-    clickPause();
+  // 关键：最短路径启动播放。iPhone 锁屏后只在系统媒体事件时短暂唤醒（几秒窗口），
+  // 不能在 play() 前 await IndexedDB 或 nextTick，否则窗口耗尽、新播放无法启动
+  // （表现为熄屏切歌不播、亮屏才播）。直接切 src、立即 play()，绕过 Vue 响应式更新。
+  const changed = audioEl.src !== song._src;
+  if (changed) {
+    audioEl.src = song._src;
+    audioEl.currentTime = 0;
+  }
+  try {
+    await audioEl.play();
+  } catch (err) {
+    console.warn('播放失败:', err?.name, err?.message);
+    if (err?.name === 'NotAllowedError') {
+      toast.warning('需要先在屏幕上点一下播放，之后才能用车机/方向盘按键');
+    } else {
+      toast.error('播放失败: ' + (err?.name || ''));
+    }
+    return;
   }
 
+  // 播放成功后再更新状态与 UI（同步、便宜；亮屏后界面一致）
   activeSongSha.value = song.sha;
-  await nextTick();
-  await clickResume();
+  audioPlaying.value = true;
+  mediaSession.updateMetadata(song);
+  updateDocumentTitle();
+  window.requestAnimationFrame(toAudioProgrssFrame);
 
-  const audioEl2 = getAudioEl();
-  if (audioEl2) {
-    audioEl2.onended = () => {
-      if (playMode.value === 'random') {
-        clickPlayByRandom();
-      } else {
-        clickPlayByOrder({ type: 'ended' });
-      }
-    };
+  // 上一首统计后置（IndexedDB 不阻塞播放；锁屏后台执行不了则统计可丢）
+  if (prevSha && prevRatio !== null) {
+    songState.recordPlay(prevSha, prevRatio, kind).catch(() => {});
   }
+
+  // 自然播完连播（锁屏 ended 事件触发后也走这条快速路径）
+  audioEl.onended = () => {
+    if (playMode.value === 'random') {
+      clickPlayByRandom();
+    } else {
+      clickPlayByOrder({ type: 'ended' });
+    }
+  };
 }
 
 async function clickSongBySha(sha) {
@@ -469,14 +545,30 @@ function toAudioProgrssFrame() {
   const audioEl = getAudioEl();
   if (!activeSongSha.value || !audioPlaying.value || !audioEl) return;
   audioProgress.value = audioEl.currentTime / audioEl.duration;
+  audioCurrentTime.value = audioEl.currentTime;
+  if (Number.isFinite(audioEl.duration) && audioEl.duration > 0) {
+    audioDuration.value = audioEl.duration;
+  }
+  syncLyrics(audioEl.currentTime);
   window.requestAnimationFrame(toAudioProgrssFrame);
 }
 
+// 点击底部播放条：打开全屏 NowPlaying 页
 function clickFooter() {
-  const activeItem = document.querySelector('.song-item.active');
-  if (activeItem) {
-    activeItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }
+  if (!activeSongSha.value) return;
+  nowPlayingOpen.value = true;
+  // 立即同步一次歌词位置（当前可能在暂停，rAF 没在跑）
+  const audioEl = getAudioEl();
+  if (audioEl) syncLyrics(audioEl.currentTime);
+}
+
+// 全屏页点歌词/进度条跳播
+function clickSeek(sec) {
+  const audioEl = getAudioEl();
+  if (!audioEl || !Number.isFinite(sec)) return;
+  audioEl.currentTime = sec;
+  audioCurrentTime.value = sec;
+  syncLyrics(sec);
 }
 
 function clickPause() {

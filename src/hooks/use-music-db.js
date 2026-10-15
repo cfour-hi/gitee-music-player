@@ -1,7 +1,8 @@
 const DB_NAME = import.meta.env.PROD ? 'music' : 'music-dev';
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 const DB_STORE_NAME = 'songs';
 const EVENTS_STORE_NAME = 'play_events';
+const LYRICS_STORE_NAME = 'lyrics';
 
 export default function useMusicDB() {
   let db;
@@ -41,6 +42,11 @@ export default function useMusicDB() {
       });
       eventStore.createIndex('sha', 'sha', { unique: false });
       eventStore.createIndex('at', 'at', { unique: false });
+    }
+
+    // v2 → v3（升级）：新增 lyrics store，缓存 LRCLIB 拉到的歌词
+    if (oldVersion < 3) {
+      db.createObjectStore(LYRICS_STORE_NAME, { keyPath: 'sha' });
     }
   };
 
@@ -151,6 +157,28 @@ export default function useMusicDB() {
     });
   }
 
+  // ---- lyrics ----
+  // record: { sha, lines: [{time, text}], source: 'lrclib'|'none', fetchedAt }
+  function getLyrics(sha) {
+    return new Promise((resolve, reject) => {
+      const store = db.transaction(LYRICS_STORE_NAME).objectStore(LYRICS_STORE_NAME);
+      const req = store.get(sha);
+      req.onerror = reject;
+      req.onsuccess = (evt) => resolve(req.result || null);
+    });
+  }
+
+  function putLyrics(record) {
+    return new Promise((resolve, reject) => {
+      const store = db
+        .transaction(LYRICS_STORE_NAME, 'readwrite')
+        .objectStore(LYRICS_STORE_NAME);
+      const req = store.put(record);
+      req.onerror = reject;
+      req.onsuccess = () => resolve(record);
+    });
+  }
+
   return {
     db,
     connect,
@@ -161,5 +189,7 @@ export default function useMusicDB() {
     addEvent,
     getAllEvents,
     deleteUncompletedEvents,
+    getLyrics,
+    putLyrics,
   };
 }
