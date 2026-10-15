@@ -30,6 +30,11 @@
       <CompassOutlined />
     </button>
 
+    <!-- 听歌统计 -->
+    <button class="icon-btn" @click="emit('openStats')" title="听歌统计">
+      <BarChartOutlined />
+    </button>
+
     <!-- 搜索图标按钮 -->
     <button class="icon-btn" @click="emit('search')" title="搜索">
       <SearchOutlined />
@@ -38,7 +43,7 @@
 </template>
 
 <script setup>
-import { ReloadOutlined, SearchOutlined, CaretRightFilled, SwapOutlined, CompassOutlined } from '@ant-design/icons-vue';
+import { ReloadOutlined, SearchOutlined, CaretRightFilled, SwapOutlined, CompassOutlined, BarChartOutlined } from '@ant-design/icons-vue';
 
 defineProps({
   songLoading: { type: Boolean, default: false },
@@ -46,7 +51,7 @@ defineProps({
   playMode: { type: String, default: 'order' },
 });
 
-const emit = defineEmits(['refresh', 'playByOrder', 'playByRandom', 'search', 'openDiscover']);
+const emit = defineEmits(['refresh', 'playByOrder', 'playByRandom', 'search', 'openDiscover', 'openStats']);
 </script>
 
 <style scoped>

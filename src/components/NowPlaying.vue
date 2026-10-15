@@ -10,9 +10,7 @@
         <DownOutlined />
       </button>
       <div class="np-artist ellipsis">{{ song?._tag?.tags?.artist || '' }}</div>
-      <button class="icon-btn" @click="$emit('open-stats')" title="听歌统计">
-        <BarChartOutlined />
-      </button>
+      <div class="header-placeholder"></div>
     </header>
 
     <!-- 封面 -->
@@ -77,7 +75,7 @@
 
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import { DownOutlined, PlayCircleFilled, PauseCircleFilled, StepBackwardFilled, StepForwardFilled, BarChartOutlined } from '@ant-design/icons-vue';
+import { DownOutlined, PlayCircleFilled, PauseCircleFilled, StepBackwardFilled, StepForwardFilled } from '@ant-design/icons-vue';
 
 const props = defineProps({
   song: { type: Object, default: null },
@@ -92,7 +90,7 @@ const props = defineProps({
   currentIndex: { type: Number, default: -1 },
 });
 
-const emit = defineEmits(['close', 'resume', 'pause', 'prev', 'next', 'seek', 'open-stats']);
+const emit = defineEmits(['close', 'resume', 'pause', 'prev', 'next', 'seek']);
 
 const lyricsRef = ref(null);
 

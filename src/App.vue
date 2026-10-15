@@ -10,6 +10,7 @@
       @play-by-random="clickPlayByRandom"
       @search="clickSearch"
       @open-discover="discoverOpen = true"
+      @open-stats="statsOpen = true"
     />
 
     <SearchBar
@@ -81,7 +82,6 @@
     :instrumental="instrumental"
     :current-index="lyricCurrentIndex"
     @close="nowPlayingOpen = false"
-    @open-stats="statsOpen = true"
     @resume="clickResume"
     @pause="clickPause"
     @prev="clickPrev"
