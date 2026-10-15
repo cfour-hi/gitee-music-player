@@ -15,7 +15,7 @@ const TIME_RE = /\[(\d+):(\d+(?:\.\d+)?)\]/g;
 
 // 解析 LRC 文本为 [{ time: 秒, text: 字符串 }]，按时间升序
 // 兼容一行多个时间标签：[00:12.00][00:17.00]歌词
-function parseLRC(lrcText) {
+export function parseLRC(lrcText) {
   if (!lrcText) return [];
   const out = [];
   for (const raw of lrcText.split(/\r?\n/)) {

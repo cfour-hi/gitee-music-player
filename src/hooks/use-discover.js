@@ -69,6 +69,22 @@ function artistCandidates(song) {
   return set
 }
 
+// 匹配榜单项到本地库：
+// 1) title 归一化后双向包含（短名是长名的子串），且短的一方 ≥4 字，
+//    兼容「甲乙丙丁」↔「甲乙丙丁 (你我怎么两清)」「七里香」↔「七里香 Live」这类差异
+// 2) 最长公共前缀 ≥4 字：兼容《甲乙丙丁Strangers》↔《甲乙丙丁(你我怎么两清)》
+//    这类同歌不同后缀（英文副标题/中文注解/Live/录音室版）
+export function titlesMatch(a, b) {
+  if (!a || !b) return false
+  if (a === b) return true
+  const [short, long] = a.length <= b.length ? [a, b] : [b, a]
+  if (short.length >= 4 && long.includes(short)) return true
+  let prefix = 0
+  while (prefix < a.length && prefix < b.length && a[prefix] === b[prefix]) prefix++
+  if (prefix >= 4) return true
+  return false
+}
+
 export default function useDiscover(localSongs) {
   const data = ref(null)       // 完整榜单数据
   const loading = ref(true)
@@ -100,24 +116,6 @@ export default function useDiscover(localSongs) {
 
   function isWishlisted(track) {
     return wishlistIds.value.has(track.id)
-  }
-
-  // 匹配榜单项到本地库：
-  // 1) title 归一化后双向包含（短名是长名的子串），且短的一方 ≥4 字，
-  //    兼容「甲乙丙丁」↔「甲乙丙丁 (你我怎么两清)」「七里香」↔「七里香 Live」这类差异
-  // 2) artist 集合有交集（防止不同歌同名）
-  function titlesMatch(a, b) {
-    if (!a || !b) return false
-    if (a === b) return true
-    // 1) 双向包含：短名是长名的子串（≥4字）
-    const [short, long] = a.length <= b.length ? [a, b] : [b, a]
-    if (short.length >= 4 && long.includes(short)) return true
-    // 2) 最长公共前缀 ≥4 字：兼容《甲乙丙丁Strangers》↔《甲乙丙丁(你我怎么两清)》
-    //    这类同歌不同后缀（英文副标题/中文注解/Live/录音室版）
-    let prefix = 0
-    while (prefix < a.length && prefix < b.length && a[prefix] === b[prefix]) prefix++
-    if (prefix >= 4) return true
-    return false
   }
 
   // 单首榜单项匹配本地库：title 任一候选双向包含 + artist 任一候选交集
