@@ -15,7 +15,7 @@
 
     <!-- 封面 -->
     <div v-if="song?._cover" class="np-cover-wrap">
-      <img :src="song._cover" class="np-cover" alt="" />
+      <img :src="song._cover" class="np-cover" :class="{ playing }" alt="" />
     </div>
 
     <!-- 歌名 -->
@@ -357,6 +357,15 @@ onBeforeUnmount(() => {
   border-radius: 50%;
   object-fit: cover;
   box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6);
+  animation: spin 20s linear infinite;
+  animation-play-state: paused;
+}
+.np-cover.playing {
+  animation-play-state: running;
+}
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 .np-title {

@@ -1,8 +1,9 @@
 const DB_NAME = import.meta.env.PROD ? 'music' : 'music-dev';
-const DB_VERSION = 3;
+const DB_VERSION = 4;
 const DB_STORE_NAME = 'songs';
 const EVENTS_STORE_NAME = 'play_events';
 const LYRICS_STORE_NAME = 'lyrics';
+const COVERS_STORE_NAME = 'covers';
 
 export default function useMusicDB() {
   let db;
@@ -47,6 +48,11 @@ export default function useMusicDB() {
     // v2 → v3（升级）：新增 lyrics store，缓存 LRCLIB 拉到的歌词
     if (oldVersion < 3) {
       db.createObjectStore(LYRICS_STORE_NAME, { keyPath: 'sha' });
+    }
+
+    // v3 → v4（升级）：新增 covers store，缓存 iTunes 补的封面
+    if (oldVersion < 4) {
+      db.createObjectStore(COVERS_STORE_NAME, { keyPath: 'sha' });
     }
   };
 
@@ -179,6 +185,28 @@ export default function useMusicDB() {
     });
   }
 
+  // ---- covers ----
+  // record: { sha, coverUrl, fetchedAt }
+  function getCover(sha) {
+    return new Promise((resolve, reject) => {
+      const store = db.transaction(COVERS_STORE_NAME).objectStore(COVERS_STORE_NAME);
+      const req = store.get(sha);
+      req.onerror = reject;
+      req.onsuccess = (evt) => resolve(req.result || null);
+    });
+  }
+
+  function putCover(record) {
+    return new Promise((resolve, reject) => {
+      const store = db
+        .transaction(COVERS_STORE_NAME, 'readwrite')
+        .objectStore(COVERS_STORE_NAME);
+      const req = store.put(record);
+      req.onerror = reject;
+      req.onsuccess = () => resolve(record);
+    });
+  }
+
   return {
     db,
     connect,
@@ -191,5 +219,7 @@ export default function useMusicDB() {
     deleteUncompletedEvents,
     getLyrics,
     putLyrics,
+    getCover,
+    putCover,
   };
 }

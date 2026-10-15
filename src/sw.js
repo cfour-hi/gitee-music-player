@@ -104,3 +104,25 @@ registerRoute(
     ],
   })
 );
+
+// iTunes 封面搜索 API + 封面图 CDN（mzstatic）
+registerRoute(
+  ({ url }) => url.origin === 'https://itunes.apple.com',
+  new CacheFirst({
+    cacheName: 'itunes-search',
+    plugins: [
+      new ExpirationPlugin({ maxEntries: 500, maxAgeSeconds: 60 * 60 * 24 * 30 }),
+      new CacheableResponsePlugin({ statuses: [200] }),
+    ],
+  })
+);
+registerRoute(
+  ({ url }) => url.hostname.endsWith('.mzstatic.com'),
+  new CacheFirst({
+    cacheName: 'itunes-cover',
+    plugins: [
+      new ExpirationPlugin({ maxEntries: 500, maxAgeSeconds: 60 * 60 * 24 * 30 }),
+      new CacheableResponsePlugin({ statuses: [200] }),
+    ],
+  })
+);

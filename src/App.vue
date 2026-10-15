@@ -119,6 +119,7 @@ import useMusicSearch, { highlightText } from './hooks/use-music-search';
 import useSongState from './hooks/use-song-state';
 import useMediaSession from './hooks/use-media-session';
 import useLyrics from './hooks/use-lyrics';
+import useCover from './hooks/use-cover';
 import { useToast } from './hooks/use-toast';
 import { isAudio } from './helper';
 
@@ -212,11 +213,13 @@ const {
   sync: syncLyrics,
   adjustOffset: adjustLyricOffset,
 } = useLyrics(musicDB);
+const { tryFillCover } = useCover(musicDB);
 
 watch(activeSong, (s) => {
   audioCurrentTime.value = 0;
   audioDuration.value = 0;
   loadLyrics(s);
+  tryFillCover(s);
 });
 
 // ---- 长按菜单 ----
