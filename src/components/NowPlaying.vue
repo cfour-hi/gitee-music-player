@@ -508,7 +508,7 @@ onBeforeUnmount(() => {
 
 .sleep-menu {
   position: absolute;
-  bottom: 5rem;
+  bottom: 4rem;
   left: var(--spacing-md);
   background: rgba(30, 32, 30, 0.95);
   border-radius: var(--radius-md);
