@@ -481,7 +481,16 @@ onBeforeUnmount(() => {
 }
 
 .ctl-main .anticon {
-  font-size: 0.96rem;
+  font-size: 0.72rem;
+}
+
+.ctl-main {
+  background: var(--color-primary);
+  width: 1.1rem;
+  height: 1.1rem;
+}
+.ctl-main .anticon {
+  color: #fff;
 }
 
 .ctl {
