@@ -13,6 +13,7 @@
       @set-mood="setMood"
       @search="clickSearch"
       @open-discover="discoverOpen = true"
+      @open-stats="statsOpen = true"
     />
 
     <SearchBar
@@ -98,6 +99,13 @@
     @play-local="playFromDiscover"
   />
 
+  <Stats
+    v-if="statsOpen"
+    :music-db="musicDB"
+    :song-list="songListSorted"
+    @close="statsOpen = false"
+  />
+
   <ToastContainer />
 </template>
 
@@ -122,6 +130,7 @@ import PlayerBar from './components/PlayerBar.vue';
 import SongActionSheet from './components/SongActionSheet.vue';
 import NowPlaying from './components/NowPlaying.vue';
 import DiscoverPanel from './components/DiscoverPanel.vue';
+import Stats from './components/Stats.vue';
 import ToastContainer from './components/ToastContainer.vue';
 
 const OWNER = import.meta.env.VITE_OWNER;
@@ -217,6 +226,7 @@ let longPressTimer = null;
 
 // ---- 发现面板 ----
 const discoverOpen = ref(false);
+const statsOpen = ref(false);
 
 // 从发现面板点已入库的歌：关闭面板并播放本地 blob
 async function playFromDiscover(song) {

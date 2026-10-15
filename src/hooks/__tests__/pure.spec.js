@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { parseLRC } from '../use-lyrics';
 import { normalizeText, buildSongIndex, buildKeywords, songMatches } from '../use-music-search';
 import { titlesMatch } from '../use-discover';
+import { topSongs, hourDistribution, overview, recentDays } from '../use-stats';
 
 describe('parseLRC', () => {
   it('解析标准时间戳', () => {
@@ -116,5 +117,61 @@ describe('titlesMatch', () => {
 
   it('完全不同的歌不匹配', () => {
     expect(titlesMatch('七里香', '稻香')).toBe(false);
+  });
+});
+
+describe('use-stats 纯函数', () => {
+  const songs = [
+    { sha: 's1', path: 'a.mp3', _tag: { tags: { title: '七里香', artist: '周杰伦' } } },
+    { sha: 's2', path: 'b.mp3', _tag: { tags: { title: '晴天', artist: '周杰伦' } } },
+    { sha: 's3', path: 'c.mp3', _tag: { tags: { title: 'Love', artist: 'Taylor' } } },
+  ];
+  const now = new Date('2026-10-15T20:00:00').getTime();
+
+  it('overview 算总播放/听完/跳过率', () => {
+    const events = [
+      { sha: 's1', at: now, completed: true },
+      { sha: 's2', at: now, completed: true },
+      { sha: 's3', at: now, completed: false },
+    ];
+    expect(overview(events)).toEqual({ total: 3, completed: 2, skipped: 1, skipRate: 33 });
+  });
+
+  it('topSongs 只统计 completed，按次数排序', () => {
+    const events = [
+      { sha: 's1', at: now, completed: true },
+      { sha: 's1', at: now, completed: true },
+      { sha: 's1', at: now, completed: false }, // 跳过不计
+      { sha: 's2', at: now, completed: true },
+    ];
+    const top = topSongs(events, songs, 5);
+    expect(top[0].title).toBe('七里香');
+    expect(top[0].plays).toBe(2);
+    expect(top[1].title).toBe('晴天');
+  });
+
+  it('hourDistribution 24 桶', () => {
+    const events = [
+      { sha: 's1', at: new Date('2026-10-15T08:00:00').getTime(), completed: true },
+      { sha: 's2', at: new Date('2026-10-15T20:30:00').getTime(), completed: true },
+      { sha: 's3', at: new Date('2026-10-15T20:45:00').getTime(), completed: false },
+    ];
+    const h = hourDistribution(events);
+    expect(h).toHaveLength(24);
+    expect(h[8]).toBe(1);
+    expect(h[20]).toBe(2);
+  });
+
+  it('recentDays 最近 7 天按天分桶', () => {
+    const events = [
+      { sha: 's1', at: now, completed: true },
+      { sha: 's1', at: now - 2 * 24 * 3600 * 1000, completed: true },
+      { sha: 's1', at: now - 10 * 24 * 3600 * 1000, completed: true }, // 超出窗口
+    ];
+    const days = recentDays(events, 7, now);
+    expect(days).toHaveLength(7);
+    expect(days[6].count).toBe(1); // 今天
+    expect(days[4].count).toBe(1); // 2 天前
+    expect(days.reduce((s, d) => s + d.count, 0)).toBe(2);
   });
 });
