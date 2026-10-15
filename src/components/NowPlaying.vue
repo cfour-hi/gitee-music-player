@@ -474,8 +474,8 @@ onBeforeUnmount(() => {
 .np-controls {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 0.48rem;
+  justify-content: space-between;
+  gap: 0.24rem;
 }
 
 .ctl {
@@ -494,7 +494,7 @@ onBeforeUnmount(() => {
 }
 
 .ctl .anticon {
-  font-size: 0.64rem;
+  font-size: 0.44rem;
 }
 
 .ctl-main .anticon {
