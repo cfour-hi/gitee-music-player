@@ -8,8 +8,14 @@ html {
   box-sizing: border-box;
 }
 
-*, *:before, *:after {
+* {
   box-sizing: inherit;
+  -webkit-user-select: none;
+  user-select: none;
+}
+input, textarea {
+  -webkit-user-select: text;
+  user-select: text;
 }
 
 body {

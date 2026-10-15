@@ -49,13 +49,15 @@
     </div>
 
     <!-- 歌词校准弹出 -->
-    <div v-if="offsetMenuOpen" class="offset-menu" @click.self="offsetMenuOpen = false">
-      <div class="offset-title">歌词校准（当前 {{ offset > 0 ? '+' : '' }}{{ offset }}s）</div>
-      <div class="offset-row">
-        <button @click="$emit('adjust-offset', -0.5)">歌词提前 0.5s</button>
-        <button @click="$emit('adjust-offset', 0.5)">歌词延后 0.5s</button>
+    <div v-if="offsetMenuOpen" class="offset-mask" @click="offsetMenuOpen = false">
+      <div class="offset-menu" @click.stop>
+        <div class="offset-title">歌词校准（当前 {{ offset > 0 ? '+' : '' }}{{ offset }}s）</div>
+        <div class="offset-row">
+          <button @click="$emit('adjust-offset', -0.5)">歌词提前 0.5s</button>
+          <button @click="$emit('adjust-offset', 0.5)">歌词延后 0.5s</button>
+        </div>
+        <button v-if="offset !== 0" class="offset-reset" @click="resetOffset">重置</button>
       </div>
-      <button v-if="offset !== 0" class="offset-reset" @click="resetOffset">重置</button>
     </div>
 
     <!-- 底部：进度 + 控制 -->
@@ -545,15 +547,18 @@ onBeforeUnmount(() => {
   line-height: 1.4;
 }
 
-.offset-menu {
+.offset-mask {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.offset-menu {
   background: rgba(30, 32, 30, 0.97);
   border-radius: var(--radius-md);
   padding: var(--spacing-md);
-  z-index: 10;
   text-align: center;
   .offset-title {
     color: #fff;

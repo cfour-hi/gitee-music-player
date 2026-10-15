@@ -1,44 +1,43 @@
 <template>
   <div class="toolbar">
-    <!-- 图标按钮组 -->
-    <button class="icon-btn" @click="emit('refresh')" title="刷新">
-      <ReloadOutlined :class="{ loading: songLoading }" />
-    </button>
+    <!-- 左：刷新 + 播放模式 -->
+    <div class="toolbar-left">
+      <button class="icon-btn" @click="emit('refresh')" title="刷新">
+        <ReloadOutlined :class="{ loading: songLoading }" />
+      </button>
 
-    <!-- 播放模式按钮 -->
-    <div v-if="hasSongs" class="play-btns">
-      <button
-        class="mode-btn"
-        :class="{ active: playMode === 'order' }"
-        @click="emit('playByOrder')"
-      >
-        <CaretRightFilled />
-        顺序
-      </button>
-      <button
-        class="mode-btn"
-        :class="{ active: playMode === 'random' }"
-        @click="emit('playByRandom')"
-      >
-        <SwapOutlined />
-        随机
-      </button>
+      <div v-if="hasSongs" class="play-btns">
+        <button
+          class="mode-btn"
+          :class="{ active: playMode === 'order' }"
+          @click="emit('playByOrder')"
+          title="顺序播放"
+        >
+          <CaretRightFilled />
+        </button>
+        <button
+          class="mode-btn"
+          :class="{ active: playMode === 'random' }"
+          @click="emit('playByRandom')"
+          title="随机播放"
+        >
+          <SwapOutlined />
+        </button>
+      </div>
     </div>
 
-    <!-- 发现（热门榜单） -->
-    <button class="icon-btn" @click="emit('openDiscover')" title="发现热门">
-      <CompassOutlined />
-    </button>
-
-    <!-- 听歌统计 -->
-    <button class="icon-btn" @click="emit('openStats')" title="听歌统计">
-      <BarChartOutlined />
-    </button>
-
-    <!-- 搜索图标按钮 -->
-    <button class="icon-btn" @click="emit('search')" title="搜索">
-      <SearchOutlined />
-    </button>
+    <!-- 右：发现 + 统计 + 搜索 -->
+    <div class="toolbar-right">
+      <button class="icon-btn" @click="emit('openDiscover')" title="发现热门">
+        <CompassOutlined />
+      </button>
+      <button class="icon-btn" @click="emit('openStats')" title="听歌统计">
+        <BarChartOutlined />
+      </button>
+      <button class="icon-btn" @click="emit('search')" title="搜索">
+        <SearchOutlined />
+      </button>
+    </div>
   </div>
 </template>
 
@@ -58,10 +57,17 @@ const emit = defineEmits(['refresh', 'playByOrder', 'playByRandom', 'search', 'o
 .toolbar {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   flex: auto;
   height: 100%;
-  gap: var(--spacing-sm);
   padding: 0 var(--spacing-md);
+}
+
+.toolbar-left,
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
 }
 
 /* 图标按钮（统一大小和样式） */
