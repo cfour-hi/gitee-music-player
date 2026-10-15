@@ -78,7 +78,7 @@
         </button>
         <button class="ctl" @click="cycleSleep" title="睡眠定时">
           <ClockCircleOutlined :class="{ active: sleepMinutes > 0 }" />
-          <span v-if="sleepMinutes > 0" class="sleep-badge">{{ sleepRemain }}</span>
+          <span v-if="sleepMinutes > 0" class="sleep-badge">{{ sleepRemain || sleepMinutes + 'm' }}</span>
         </button>
         <button class="ctl" @click="$emit('prev')" title="上一首">
           <StepBackwardFilled />
@@ -492,13 +492,15 @@ onBeforeUnmount(() => {
 }
 .sleep-badge {
   position: absolute;
-  top: -4px;
-  right: -8px;
+  top: -2px;
+  right: -6px;
+  min-width: 0.28rem;
+  text-align: center;
   font-size: 0.18rem;
-  background: var(--color-primary);
+  background: #ff4757;
   color: #fff;
-  border-radius: 8px;
-  padding: 0 4px;
+  border-radius: 0.14rem;
+  padding: 0 0.04rem;
   line-height: 1.4;
 }
 
