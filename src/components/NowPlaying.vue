@@ -1,5 +1,5 @@
 <template>
-  <div class="now-playing" @click.self="$emit('close')">
+  <div class="now-playing" :class="{ dimmed }" @click.self="$emit('close')" @dblclick="dimmed = !dimmed">
     <!-- 模糊封面背景 -->
     <div class="bg-cover" :style="song?._cover ? { backgroundImage: `url(${song._cover})` } : {}"></div>
     <div class="bg-mask"></div>
@@ -63,6 +63,7 @@
     <!-- 底部：进度 + 控制 -->
     <footer class="np-footer">
       <div
+        ref="progressBarRef"
         class="np-progress"
         @mousedown="onStartDrag"
         @touchstart.prevent="onStartDrag"
@@ -136,6 +137,7 @@ const emit = defineEmits(['close', 'resume', 'pause', 'prev', 'next', 'seek', 'a
 const lyricsRef = ref(null);
 const offsetMenuOpen = ref(false);
 const queueOpen = ref(false);
+const dimmed = ref(false);
 
 function resetOffset() {
   const delta = -props.offset;
@@ -193,20 +195,22 @@ const progressPercent = computed(() => {
 // 进度条拖拽
 const dragging = ref(false);
 const dragPercent = ref(0);
+const progressBarRef = ref(null);
 
-function ratioFromEvent(e) {
-  const bar = e.currentTarget.getBoundingClientRect();
-  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+function ratioFromEvent(clientX) {
+  const bar = progressBarRef.value.getBoundingClientRect();
   return Math.min(1, Math.max(0, (clientX - bar.left) / bar.width));
 }
 
 function onStartDrag(e) {
   if (!props.duration) return;
   dragging.value = true;
-  dragPercent.value = ratioFromEvent(e) * 100;
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  dragPercent.value = ratioFromEvent(clientX) * 100;
   const move = (ev) => {
     if (!dragging.value) return;
-    dragPercent.value = ratioFromEvent(ev) * 100;
+    const x = ev.touches ? ev.touches[0].clientX : ev.clientX;
+    dragPercent.value = ratioFromEvent(x) * 100;
   };
   const up = (ev) => {
     dragging.value = false;
@@ -214,10 +218,8 @@ function onStartDrag(e) {
     window.removeEventListener('mouseup', up);
     window.removeEventListener('touchmove', move);
     window.removeEventListener('touchend', up);
-    const clientX = ev.changedTouches ? ev.changedTouches[0].clientX : ev.clientX;
-    const bar = e.currentTarget.getBoundingClientRect();
-    const ratio = Math.min(1, Math.max(0, (clientX - bar.left) / bar.width));
-    emit('seek', ratio * props.duration);
+    const x = ev.changedTouches ? ev.changedTouches[0].clientX : ev.clientX;
+    emit('seek', ratioFromEvent(x) * props.duration);
   };
   window.addEventListener('mousemove', move);
   window.addEventListener('mouseup', up);
@@ -276,6 +278,10 @@ onBeforeUnmount(() => {
   color: #fff;
   overflow: hidden;
   animation: slideUp 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: filter 0.3s;
+}
+.now-playing.dimmed {
+  filter: brightness(0.15);
 }
 
 @keyframes slideUp {
@@ -429,7 +435,7 @@ onBeforeUnmount(() => {
 .np-footer {
   flex: 0 0 auto;
   position: relative;
-  padding: 0.16rem 0.4rem calc(env(safe-area-inset-bottom, 0px) + 0.16rem);
+  padding: 0.16rem 0.6rem calc(env(safe-area-inset-bottom, 0px) + 0.16rem);
 }
 
 .np-progress {
