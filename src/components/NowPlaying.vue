@@ -76,7 +76,7 @@
         <button class="ctl" @click="queueOpen = !queueOpen" title="播放队列">
           <UnorderedListOutlined />
         </button>
-        <button class="ctl" @click="toggleSleepMenu" title="睡眠定时">
+        <button class="ctl" @click="cycleSleep" title="睡眠定时">
           <ClockCircleOutlined :class="{ active: sleepMinutes > 0 }" />
           <span v-if="sleepMinutes > 0" class="sleep-badge">{{ sleepRemain }}</span>
         </button>
@@ -90,14 +90,6 @@
         <button class="ctl" @click="$emit('next')" title="下一首">
           <StepForwardFilled />
         </button>
-
-        <!-- 睡眠定时弹出选项（相对 footer 定位） -->
-        <div v-if="sleepMenuOpen" class="sleep-menu" @click.self="sleepMenuOpen = false">
-          <button @click="setSleep(15)">15 分钟</button>
-          <button @click="setSleep(30)">30 分钟</button>
-          <button @click="setSleep(60)">60 分钟</button>
-          <button v-if="sleepMinutes > 0" @click="setSleep(0)">取消定时</button>
-        </div>
       </div>
 
       <!-- 播放队列 -->
@@ -150,14 +142,17 @@ function resetOffset() {
 }
 
 // ---- 睡眠定时 ----
-const sleepMenuOpen = ref(false);
 const sleepMinutes = ref(0);
 const sleepRemain = ref('');
 let sleepTimer = null;
 let sleepInterval = null;
 
-function toggleSleepMenu() {
-  sleepMenuOpen.value = !sleepMenuOpen.value;
+// 点闹钟按钮循环：关 → 15 → 30 → 60 → 关
+const SLEEP_STEPS = [0, 15, 30, 60];
+function cycleSleep() {
+  const idx = SLEEP_STEPS.indexOf(sleepMinutes.value);
+  const next = SLEEP_STEPS[(idx + 1) % SLEEP_STEPS.length];
+  setSleep(next);
 }
 
 function setSleep(min) {
@@ -505,30 +500,6 @@ onBeforeUnmount(() => {
   border-radius: 8px;
   padding: 0 4px;
   line-height: 1.4;
-}
-
-.sleep-menu {
-  position: absolute;
-  bottom: calc(100% + 0.12rem);
-  left: 0;
-  background: rgba(30, 32, 30, 0.95);
-  border-radius: var(--radius-md);
-  padding: var(--spacing-xs);
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
-  button {
-    background: transparent;
-    border: none;
-    color: #fff;
-    padding: var(--spacing-sm) var(--spacing-md);
-    font-size: var(--font-size-base);
-    cursor: pointer;
-    border-radius: var(--radius-sm);
-    white-space: nowrap;
-    &:hover { background: var(--color-bg-hover); }
-  }
 }
 
 .offset-menu {
