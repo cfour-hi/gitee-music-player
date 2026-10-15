@@ -22,7 +22,7 @@
     <div class="np-title ellipsis">{{ song?._tag?.tags?.title || '' }}</div>
 
     <!-- 歌词区 -->
-    <div class="np-lyrics" ref="lyricsRef">
+    <div class="np-lyrics" ref="lyricsRef" @contextmenu.prevent="offsetMenuOpen = true">
       <template v-if="loading">
         <div class="lyric-line placeholder">歌词加载中…</div>
       </template>
@@ -48,16 +48,38 @@
       </template>
     </div>
 
+    <!-- 歌词校准弹出 -->
+    <div v-if="offsetMenuOpen" class="offset-menu" @click.self="offsetMenuOpen = false">
+      <div class="offset-title">歌词校准（当前 {{ offset > 0 ? '+' : '' }}{{ offset }}s）</div>
+      <div class="offset-row">
+        <button @click="$emit('adjust-offset', -0.5)">歌词提前 0.5s</button>
+        <button @click="$emit('adjust-offset', 0.5)">歌词延后 0.5s</button>
+      </div>
+      <button v-if="offset !== 0" class="offset-reset" @click="resetOffset">重置</button>
+    </div>
+
     <!-- 底部：进度 + 控制 -->
     <footer class="np-footer">
-      <div class="np-progress" @click="onProgressClick">
-        <div class="np-progress-fill" :style="{ width: progressPercent + '%' }"></div>
+      <div
+        class="np-progress"
+        @mousedown="onStartDrag"
+        @touchstart.prevent="onStartDrag"
+      >
+        <div class="np-progress-fill" :style="{ width: (dragging ? dragPercent : progressPercent) + '%' }"></div>
+        <div class="np-thumb" :style="{ left: (dragging ? dragPercent : progressPercent) + '%' }"></div>
       </div>
       <div class="np-time-row">
         <span>{{ formatTime(currentTime) }}</span>
         <span>{{ formatTime(duration) }}</span>
       </div>
       <div class="np-controls">
+        <button class="ctl" @click="queueOpen = !queueOpen" title="播放队列">
+          <UnorderedListOutlined />
+        </button>
+        <button class="ctl" @click="toggleSleepMenu" title="睡眠定时">
+          <ClockCircleOutlined :class="{ active: sleepMinutes > 0 }" />
+          <span v-if="sleepMinutes > 0" class="sleep-badge">{{ sleepRemain }}</span>
+        </button>
         <button class="ctl" @click="$emit('prev')" title="上一首">
           <StepBackwardFilled />
         </button>
@@ -69,13 +91,36 @@
           <StepForwardFilled />
         </button>
       </div>
+
+      <!-- 睡眠定时弹出选项 -->
+      <div v-if="sleepMenuOpen" class="sleep-menu" @click.self="sleepMenuOpen = false">
+        <button @click="setSleep(15)">15 分钟</button>
+        <button @click="setSleep(30)">30 分钟</button>
+        <button @click="setSleep(60)">60 分钟</button>
+        <button v-if="sleepMinutes > 0" @click="setSleep(0)">取消定时</button>
+      </div>
+
+      <!-- 播放队列 -->
+      <div v-if="queueOpen" class="queue-panel" @click.self="queueOpen = false">
+        <div class="queue-title">接下来播放</div>
+        <div v-if="queue.length === 0" class="queue-empty">
+          随机模式下下一首由算法决定，点"下一首"试试
+        </div>
+        <div v-else class="queue-list">
+          <div v-for="(s, i) in queue" :key="i" class="queue-item">
+            <span class="queue-no">{{ i + 1 }}</span>
+            <span class="queue-title-item">{{ s._tag?.tags?.title || s.path }}</span>
+            <span class="queue-artist">{{ s._tag?.tags?.artist || '' }}</span>
+          </div>
+        </div>
+      </div>
     </footer>
   </div>
 </template>
 
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import { DownOutlined, PlayCircleFilled, PauseCircleFilled, StepBackwardFilled, StepForwardFilled } from '@ant-design/icons-vue';
+import { DownOutlined, PlayCircleFilled, PauseCircleFilled, StepBackwardFilled, StepForwardFilled, ClockCircleOutlined, UnorderedListOutlined } from '@ant-design/icons-vue';
 
 const props = defineProps({
   song: { type: Object, default: null },
@@ -88,16 +133,100 @@ const props = defineProps({
   notFound: { type: Boolean, default: false },
   instrumental: { type: Boolean, default: false },
   currentIndex: { type: Number, default: -1 },
+  offset: { type: Number, default: 0 },
+  queue: { type: Array, default: () => [] },
 });
 
-const emit = defineEmits(['close', 'resume', 'pause', 'prev', 'next', 'seek']);
+const emit = defineEmits(['close', 'resume', 'pause', 'prev', 'next', 'seek', 'adjust-offset']);
 
 const lyricsRef = ref(null);
+const offsetMenuOpen = ref(false);
+const queueOpen = ref(false);
+
+function resetOffset() {
+  const delta = -props.offset;
+  offsetMenuOpen.value = false;
+  emit('adjust-offset', delta);
+}
+
+// ---- 睡眠定时 ----
+const sleepMenuOpen = ref(false);
+const sleepMinutes = ref(0);
+const sleepRemain = ref('');
+let sleepTimer = null;
+let sleepInterval = null;
+
+function toggleSleepMenu() {
+  sleepMenuOpen.value = !sleepMenuOpen.value;
+}
+
+function setSleep(min) {
+  sleepMinutes.value = min;
+  sleepMenuOpen.value = false;
+  if (sleepTimer) clearTimeout(sleepTimer);
+  if (sleepInterval) clearInterval(sleepInterval);
+  if (min <= 0) {
+    sleepRemain.value = '';
+    return;
+  }
+  const end = Date.now() + min * 60 * 1000;
+  sleepTimer = setTimeout(() => {
+    emit('pause');
+    sleepMinutes.value = 0;
+    sleepRemain.value = '';
+  }, min * 60 * 1000);
+  sleepInterval = setInterval(() => {
+    const left = Math.max(0, Math.round((end - Date.now()) / 1000));
+    const m = Math.floor(left / 60);
+    const s = left % 60;
+    sleepRemain.value = m > 0 ? `${m}:${String(s).padStart(2, '0')}` : `${s}s`;
+  }, 1000);
+}
+
+onBeforeUnmount(() => {
+  if (sleepTimer) clearTimeout(sleepTimer);
+  if (sleepInterval) clearInterval(sleepInterval);
+});
 
 const progressPercent = computed(() => {
   if (!props.duration || !Number.isFinite(props.duration)) return 0;
   return Math.min(100, Math.max(0, (props.currentTime / props.duration) * 100));
 });
+
+// 进度条拖拽
+const dragging = ref(false);
+const dragPercent = ref(0);
+
+function ratioFromEvent(e) {
+  const bar = e.currentTarget.getBoundingClientRect();
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  return Math.min(1, Math.max(0, (clientX - bar.left) / bar.width));
+}
+
+function onStartDrag(e) {
+  if (!props.duration) return;
+  dragging.value = true;
+  dragPercent.value = ratioFromEvent(e) * 100;
+  const move = (ev) => {
+    if (!dragging.value) return;
+    dragPercent.value = ratioFromEvent(ev) * 100;
+  };
+  const up = (ev) => {
+    dragging.value = false;
+    window.removeEventListener('mousemove', move);
+    window.removeEventListener('mouseup', up);
+    window.removeEventListener('touchmove', move);
+    window.removeEventListener('touchend', up);
+    const clientX = ev.changedTouches ? ev.changedTouches[0].clientX : ev.clientX;
+    const bar = e.currentTarget.getBoundingClientRect();
+    const ratio = Math.min(1, Math.max(0, (clientX - bar.left) / bar.width));
+    emit('seek', ratio * props.duration);
+  };
+  window.addEventListener('mousemove', move);
+  window.addEventListener('mouseup', up);
+  window.addEventListener('touchmove', move);
+  window.addEventListener('touchend', up);
+}
 
 const plainLines = computed(() => {
   if (!props.plainLyrics) return [];
@@ -109,13 +238,6 @@ function formatTime(sec) {
   const m = Math.floor(sec / 60);
   const s = Math.floor(sec % 60);
   return `${m}:${String(s).padStart(2, '0')}`;
-}
-
-function onProgressClick(evt) {
-  if (!props.duration) return;
-  const rect = evt.currentTarget.getBoundingClientRect();
-  const ratio = (evt.clientX - rect.left) / rect.width;
-  emit('seek', ratio * props.duration);
 }
 
 // 当前行变化时滚动歌词到中央（手动算 scrollTop，不用 scrollIntoView 避免穿透滚到 body）
@@ -317,6 +439,17 @@ onBeforeUnmount(() => {
   border-radius: 0.04rem;
 }
 
+.np-thumb {
+  position: absolute;
+  top: 50%;
+  width: 0.12rem;
+  height: 0.12rem;
+  background: #fff;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 4px rgba(0,0,0,0.3);
+}
+
 .np-time-row {
   display: flex;
   justify-content: space-between;
@@ -353,5 +486,129 @@ onBeforeUnmount(() => {
 
 .ctl-main .anticon {
   font-size: 0.96rem;
+}
+
+.ctl {
+  position: relative;
+}
+.ctl .active {
+  color: var(--color-primary);
+}
+.sleep-badge {
+  position: absolute;
+  top: -4px;
+  right: -8px;
+  font-size: 0.18rem;
+  background: var(--color-primary);
+  color: #fff;
+  border-radius: 8px;
+  padding: 0 4px;
+  line-height: 1.4;
+}
+
+.sleep-menu {
+  position: absolute;
+  bottom: 4.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(30, 32, 30, 0.95);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-xs);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  button {
+    background: transparent;
+    border: none;
+    color: #fff;
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: var(--font-size-base);
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    &:hover { background: var(--color-bg-hover); }
+  }
+}
+
+.offset-menu {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(30, 32, 30, 0.97);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  z-index: 10;
+  text-align: center;
+  .offset-title {
+    color: #fff;
+    font-size: var(--font-size-base);
+    margin-bottom: var(--spacing-sm);
+  }
+  .offset-row {
+    display: flex;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-sm);
+  }
+  button {
+    background: var(--color-primary-bg);
+    border: 1px solid var(--color-primary);
+    color: #fff;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+  }
+  .offset-reset {
+    background: transparent;
+    border: none;
+    color: var(--color-text-secondary);
+  }
+}
+
+.queue-panel {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(30, 32, 30, 0.98);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  padding: var(--spacing-md) var(--spacing-lg) calc(var(--spacing-xl) + 0.5rem);
+  max-height: 60vh;
+  overflow-y: auto;
+  z-index: 10;
+  .queue-title {
+    color: #fff;
+    font-size: var(--font-size-base);
+    margin-bottom: var(--spacing-sm);
+  }
+  .queue-empty {
+    color: rgba(255,255,255,0.5);
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-md) 0;
+  }
+  .queue-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-xs) 0;
+    color: #fff;
+    font-size: var(--font-size-base);
+    .queue-no {
+      color: rgba(255,255,255,0.4);
+      width: 1rem;
+      flex-shrink: 0;
+    }
+    .queue-title-item {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .queue-artist {
+      color: rgba(255,255,255,0.5);
+      font-size: var(--font-size-sm);
+    }
+  }
 }
 </style>

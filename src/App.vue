@@ -81,12 +81,15 @@
     :not-found="lyricNotFound"
     :instrumental="instrumental"
     :current-index="lyricCurrentIndex"
+    :offset="lyricOffset"
+    :queue="nextQueue"
     @close="nowPlayingOpen = false"
     @resume="clickResume"
     @pause="clickPause"
     @prev="clickPrev"
     @next="clickNext"
     @seek="clickSeek"
+    @adjust-offset="adjustLyricOffset"
   />
 
   <DiscoverPanel
@@ -204,8 +207,10 @@ const {
   notFound: lyricNotFound,
   instrumental,
   currentIndex: lyricCurrentIndex,
+  offset: lyricOffset,
   load: loadLyrics,
   sync: syncLyrics,
+  adjustOffset: adjustLyricOffset,
 } = useLyrics(musicDB);
 
 watch(activeSong, (s) => {
@@ -234,6 +239,24 @@ const editForm = ref({ title: '', artist: '', album: '' });
 
 // ---- 列表 = 搜索过滤结果 ----
 const displayedSongs = computed(() => filteredSongs.value);
+
+// 接下来播放队列：顺序模式=当前歌后面5首；随机模式=forwardStack 倒序（即将恢复的歌）
+const nextQueue = computed(() => {
+  if (playMode.value === 'order') {
+    const list = displayedSongs.value;
+    const idx = activeSongSha.value
+      ? list.findIndex((s) => s.sha === activeSongSha.value)
+      : -1;
+    return list.slice(idx + 1, idx + 6);
+  }
+  // 随机模式：forwardStack 栈顶是下一首要播的
+  return forwardStack.value
+    .slice()
+    .reverse()
+    .map((sha) => songList.value.find((s) => s.sha === sha))
+    .filter(Boolean)
+    .slice(0, 5);
+});
 
 // 搜索命中高亮
 function hl(text) {

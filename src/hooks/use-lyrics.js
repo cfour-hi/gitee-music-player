@@ -69,6 +69,7 @@ export default function useLyrics(musicDB) {
   const notFound = ref(false);       // 明确搜过但没结果
   const instrumental = ref(false);   // 纯音乐
   const currentIndex = ref(-1);     // 当前高亮行下标
+  const offset = ref(0);            // 歌词时间轴偏移（秒），正数=歌词往后挪
 
   let requestSeq = 0; // 切歌时使上一次未完成请求作废
 
@@ -77,9 +78,11 @@ export default function useLyrics(musicDB) {
     lines.value = [];
     plainLyrics.value = '';
     currentIndex.value = -1;
+    offset.value = 0;
     notFound.value = false;
     instrumental.value = false;
     if (!song) return;
+    currentSha = song.sha;
 
     loading.value = true;
     try {
@@ -91,6 +94,7 @@ export default function useLyrics(musicDB) {
         lines.value = (cached.lines || []).map((l) => ({ ...l, text: toSimplified(l.text) }));
         plainLyrics.value = cached.plain ? toSimplified(cached.plain) : '';
         instrumental.value = !!cached.instrumental;
+        offset.value = cached.offset || 0;
         loading.value = false;
         return;
       }
@@ -138,10 +142,11 @@ export default function useLyrics(musicDB) {
   function sync(currentTime) {
     const arr = lines.value;
     if (!arr.length) return;
+    const t = currentTime + offset.value;
     let lo = 0, hi = arr.length - 1, idx = -1;
     while (lo <= hi) {
       const mid = (lo + hi) >> 1;
-      if (arr[mid].time <= currentTime) {
+      if (arr[mid].time <= t) {
         idx = mid;
         lo = mid + 1;
       } else {
@@ -151,8 +156,19 @@ export default function useLyrics(musicDB) {
     if (idx !== currentIndex.value) currentIndex.value = idx;
   }
 
+  // 微调歌词时间轴偏移（秒），持久化到缓存
+  let currentSha = null;
+  async function adjustOffset(delta) {
+    offset.value = Math.round((offset.value + delta) * 10) / 10;
+    if (!currentSha) return;
+    const cached = await musicDB.getLyrics(currentSha).catch(() => null);
+    if (cached) {
+      await musicDB.putLyrics({ ...cached, offset: offset.value }).catch(() => {});
+    }
+  }
+
   return {
-    lines, plainLyrics, loading, notFound, instrumental, currentIndex,
-    load, sync,
+    lines, plainLyrics, loading, notFound, instrumental, currentIndex, offset,
+    load, sync, adjustOffset,
   };
 }
