@@ -33,8 +33,8 @@
         @click.stop="playing ? emit('pause') : emit('resume')"
         :title="playing ? '暂停' : '播放'"
       >
-        <PauseCircleFilled v-if="playing" />
-        <PlayCircleFilled v-else />
+        <span v-if="playing" class="pause-icon"><i></i><i></i></span>
+        <span v-else class="play-icon"></span>
       </button>
       <button
         class="control-btn control-btn-next"
@@ -49,7 +49,7 @@
 
 <script setup>
 import { ref } from 'vue';
-import { PlayCircleFilled, PauseCircleFilled, StepBackwardFilled, StepForwardFilled } from '@ant-design/icons-vue';
+import { StepBackwardFilled, StepForwardFilled } from '@ant-design/icons-vue';
 
 defineProps({
   song: { type: Object, default: null },
@@ -160,14 +160,34 @@ defineExpose({ audioRef });
 .control-btn-main {
   width: 0.72rem;
   height: 0.72rem;
-  font-size: var(--font-size-lg);
   background: var(--color-primary);
   color: var(--color-text-inverse);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   &:hover {
     background: var(--color-primary-hover);
-    color: var(--color-text-inverse);
     transform: scale(1.05);
   }
+}
+
+.pause-icon {
+  display: flex;
+  gap: 0.06rem;
+}
+.pause-icon i {
+  width: 0.06rem;
+  height: 0.2rem;
+  background: #fff;
+  border-radius: 1px;
+}
+.play-icon {
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0.12rem 0 0.12rem 0.2rem;
+  border-color: transparent transparent transparent #fff;
+  margin-left: 0.04rem;
 }
 </style>
